@@ -37,8 +37,12 @@ if __name__ == "__main__":
 
 
 
+## Installation:
+`python3 -m pip install CFSession`
 
+**or**
 
+`pip3 install CFSession`
 
 
 
