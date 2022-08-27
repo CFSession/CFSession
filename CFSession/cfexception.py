@@ -1,11 +1,13 @@
-
-from sqlite3 import Time
-from urllib import response
-
+"""
+CFSession.cfexception
+~~~~~~~~~~~~~
+This module contains the exceptions for CFSession
+"""
 
 class CFException(Exception):
     def __init__(self, *args, **kwargs):
-        """Initialize RequestException with `request` and `response` objects."""
+        """There was an ambiguous exception that occurred while handling your
+    request."""
         response = kwargs.pop("response", None)
         self.response = response
         self.request = kwargs.pop("request", None)
@@ -16,8 +18,8 @@ class CFException(Exception):
 
 class NotFound(CFException):
      def __init__(self,response=None, *args, **kwargs):
-        default_message = 'Not Found'
-        self.code = 404
+        default_message = repr(response)
+        self.response = response.response
 
         # if any arguments are passed...
         # If you inherit from the exception that takes message as a keyword
@@ -31,8 +33,8 @@ class NotFound(CFException):
 
 class NetworkError(CFException):
     def __init__(self,response=None,*args,**kwargs):
-        default_message = 'There has been a connection error'
-        self.response = response
+        default_message = repr(response)
+        self.response = response.response
         if args:
             # ... pass them to the super constructor
             super().__init__(*args, **kwargs)
@@ -41,10 +43,9 @@ class NetworkError(CFException):
             super().__init__(default_message, **kwargs)
 
 class HTTPError(CFException):
-    def __init__(self,code,content,*args,**kwargs):
-        default_message = 'There has been an HTTP error'
-        self.code = code
-        self.content = content
+    def __init__(self,response = None,*args,**kwargs):
+        default_message = repr(response)
+        self.response = response.response
 
         if args:
             # ... pass them to the super constructor
@@ -54,10 +55,9 @@ class HTTPError(CFException):
             super().__init__(default_message, **kwargs)
 
 class CloudflareBlocked(CFException):
-    def __init__(self,code,content,*args,**kwargs):
-        default_message = 'CF has persistently blocked us, please report this issue.'
-        self.status_code = code
-        self.content = content
+    def __init__(self,response,*args,**kwargs):
+        default_message = repr(response)
+        self.response = response.response
 
         if args:
             # ... pass them to the super constructor
@@ -67,9 +67,9 @@ class CloudflareBlocked(CFException):
             super().__init__(default_message, **kwargs)
 
 class URLRequired(CFException):
-    def __init__(self,response=None,*args,**kwargs):
-        default_message = 'A valid URL is required to make a request.'
-        self.response = response
+    def __init__(self,response,*args,**kwargs):
+        default_message = repr(response)
+        self.response = response.response
         if args:
             # ... pass them to the super constructor
             super().__init__(*args, **kwargs)
@@ -79,8 +79,8 @@ class URLRequired(CFException):
 
 class TooManyRedirects(CFException):
     def __init__(self,response,*args,**kwargs):
-        default_message = 'Too many redirects'
-        self.response = response
+        default_message = repr(response)
+        self.response = response.response
         if args:
             # ... pass them to the super constructor
             super().__init__(*args, **kwargs)
@@ -99,9 +99,9 @@ class Timeout(CFException):
     pass
 
 class ConnectTimeout(Timeout):
-    def __init__(self,response=None,*args,**kwargs):
-        default_message = 'The request timed out while trying to connect to the remote server.'
-        self.response = response
+    def __init__(self,response,*args,**kwargs):
+        default_message = repr(response)
+        self.response = response.response
         if args:
             # ... pass them to the super constructor
             super().__init__(*args, **kwargs)
@@ -110,9 +110,9 @@ class ConnectTimeout(Timeout):
             super().__init__(default_message, **kwargs)
 
 class ReadTimeout(Timeout):
-    def __init__(self,response=None,*args,**kwargs):
-        default_message = 'The server did not send any data in the allotted amount of time.'
-        self.response = response
+    def __init__(self,response,*args,**kwargs):
+        default_message = repr(response)
+        self.response = response.response
         if args:
             # ... pass them to the super constructor
             super().__init__(*args, **kwargs)
