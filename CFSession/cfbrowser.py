@@ -177,7 +177,6 @@ class cfSession():
             if caught_code == 503:
                 self.exception = CloudflareBlocked(caught_exception)
             self.exception = HTTPError(caught_exception)
-        raise self.exception
         content.raise_for_status = lambda: self._response_hook_raiseforstatus(content)
         return content    
 
