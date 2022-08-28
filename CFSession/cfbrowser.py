@@ -177,7 +177,10 @@ class cfSession():
             if caught_code == 503:
                 self.exception = CloudflareBlocked(caught_exception)
             self.exception = HTTPError(caught_exception)
-        content.raise_for_status = lambda: self._response_hook_raiseforstatus(content)
+        try:
+            content.raise_for_status = lambda: self._response_hook_raiseforstatus(content)
+        except AttributeError: #Indicates Response was not created, this usually means that the error is non-HTTP and must be raised immediately
+            raise self.exception
         return content    
 
     def _response_hook_raiseforstatus(self, objself: CFException):
