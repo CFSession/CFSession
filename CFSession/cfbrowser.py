@@ -35,6 +35,7 @@ class cfSession():
         self.directory = directory
         self.cookieChecker = cfSessionHandler(self.directory)
         self._setcookies_status = self.set_cookies()
+        self.cf_proccache = None
 
     def __enter__(self):
         return self
@@ -103,10 +104,11 @@ class cfSession():
     def reload_token(self,site_requested,reset=False):
         cookieStatus =  self.cookieChecker.cookie_available()
         if not cookieStatus[0] or reset:
-            NHS = SiteBrowserProcess(site_requested,directory=self.directory)
+            self.cf_proccache = SiteBrowserProcess(site_requested,directory=self.directory)
             if reset:
                 self.cookieChecker.delete_cookies()
-            NHS.start()
+            self.cf_proccache.start()
+            self.cf_proccache.close()
         
     def set_cookies(self):
         try:
@@ -190,6 +192,10 @@ class cfSession():
 
     def close(self):
         self.session.close()
+        self.session.close()
+        if self.cf_proccache:
+            self.cf_proccache.close()
+            del self.cf_proccache
 
     def __repr__(self):
         return "<cfSession Object>"
