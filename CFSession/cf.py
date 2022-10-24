@@ -67,7 +67,6 @@ class SiteBrowserProcess:
         try:
             self.driver.quit()
             self.proc_done = True
-            sys.exit()
         except AttributeError:
             raise AttributeError("Driver has not initialized")
 
