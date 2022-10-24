@@ -4,7 +4,7 @@ with open('README.md', 'rt') as readme:
 
 setup(
     name='CFSession',
-    version='0.1.2',
+    version='0.1.3',
     author='Kinuseka',
     author_email='realkingseeker1089@gmail.com',
     description='A Cloudflare IUAM session grabber',

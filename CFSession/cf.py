@@ -81,7 +81,8 @@ class SiteBrowserProcess:
         options.add_argument("--disable-backgrounding-occluded-windows")
         caps = DesiredCapabilities().CHROME
         caps["pageLoadStrategy"] = "eager"
-        self.driver =  uc.Chrome(desired_capabilities=caps,options=options)
+        cdriver_path = self.directory.chromedriver_path() #the function will return None(default), or a str path
+        self.driver =  uc.Chrome(desired_capabilities=caps,options=options,driver_executable_path=cdriver_path)
         self.driver.minimize_window()
         # driver.execute_cdp_cmd('Network.setUserAgentOverride', {"userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.54 Safari/537.36"})
         norm_print("Driver initialized")
