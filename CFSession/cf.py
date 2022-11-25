@@ -1,11 +1,16 @@
 import undetected_chromedriver as uc
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+from .cfdefaults import Required_defaults
 from pathlib import Path
+import typing
 import time
 import sys
 import json
 import json
 
+#Not a constant. CAPITAL for more readable syntax
+#If constant is ever declared we will use CONST_VARIABLE_NAME
+IGNORE_WARN = True
 STDOUT = False
 DEBUG = False
 DUMMY = False
@@ -18,11 +23,24 @@ def norm_print(text):
     if STDOUT or DEBUG:
         print(text)
 
+def warn_print(text, level: int = 2): # 0-Important, 1-If possible, 2-Unimportant (debug purposes)
+    acceptable = STDOUT + DEBUG
+    if IGNORE_WARN and not DEBUG:
+        return
+    elif level == 0:
+        print(f"[WARN] {text}")
+        print("-"*20)
+        print("You received this warning as it might be critical to the processs of the program")
+        print*("Ignore this warning by using CFSession.cf.IGNORE_WARN = True")
+    elif level <= acceptable:
+        print(f"[WARN] {text}")
+
 class CFBypass:
-    def __init__(self, driver, directory) -> None:
-        self.TARGET_NAME = ["Just a moment...","Please Wait..."]
+    def __init__(self, driver, directory, target = ["Just a moment...","Please Wait..."]) -> None:
+        self.TARGET_NAME = target
         self.driver = driver
         self.directory = directory
+        self.timeout = 40
     
     def start(self):
         return self._main_process()
@@ -31,9 +49,10 @@ class CFBypass:
         timeout = 0
         while any(ext in self.driver.title for ext in self.TARGET_NAME):
             timeout += 1
-            if timeout >= 40:
+            if timeout >= self.timeout:
                 break
             norm_print("Waiting for cloudflare...")
+            de_print(f"cur: {self.driver.title}")
             time.sleep(1)
         else:
             de_print(self.driver.title)
@@ -42,19 +61,28 @@ class CFBypass:
             return True
         return False
 
+    def save_cookie(self, driver, file):
+        """Cookie save, requires driver and file"""
+        json.dump(driver, file)
+
+
     def save_cookie_verified(self):
         de_print('saving cookie')
         json.dump(self.driver.execute_script("return navigator.userAgent;"), open(self.directory.session_path(),"w"))
         if DEBUG and DUMMY:
             de_print("DUMMY COOKIE")
             dummy = [{"domain": ".nowsecure.nl", "expiry": 1690714605, "httpOnly": True, "name": "cf_clearance", "path": "/", "sameSite": "None", "secure": True, "value": "IOt5_jFk89BojBTV0NWAPj8zh4xq_zSxxt.2scnbY.4-1659175005-0-150"}]
-            json.dump(dummy , open(self.directory.cookie_path(),"w"))
+            self.save_cookie(dummy , open(self.directory.cookie_path(),"w"))
         else:
-            json.dump(self.driver.get_cookies() , open(self.directory.cookie_path(),"w"))
+            self.save_cookie(self.driver.get_cookies(), open(self.directory.cookie_path(),"w"))
             de_print("Cookies Saved")
 
 class SiteBrowserProcess:
-    def __init__(self, destination: str, directory: str) -> None:
+    def __init__(self, destination: str, directory: str, ignore_defaults: bool = False, defaults: typing.Union[Required_defaults, bool] = Required_defaults(), *args, **kwargs) -> None:
+        self.args = args
+        self.kwargs = kwargs
+        self.defaults = defaults
+        self.ignore_defaults = ignore_defaults
         self.destination = destination
         self.directory = directory
         self.process_done = False
@@ -73,28 +101,31 @@ class SiteBrowserProcess:
     def create_directory(self):
         Path(self.destination).mkdir(parents=True, exist_ok=True)
 
+    def _init_chromedriver_manual(self):
+        self.driver = uc.Chrome(*self.args, **self.kwargs)
+
     def initialize_chromedriver(self):
-        options= uc.ChromeOptions() 
-        options.use_chromium=True
-        options.add_argument("--disable-renderer-backgrounding")
-        options.add_argument("--disable-backgrounding-occluded-windows")
-        caps = DesiredCapabilities().CHROME
-        caps["pageLoadStrategy"] = "eager"
+        if self.ignore_defaults and not self.defaults:
+            warn_print("You are overriding default arguments without cfdefaults, these may be important to work properly.\nIt is recommended to use 'CFSession.cfdefaults.RequiredDefaults' to modify changes",1)
+            return self._init_chromedriver_manual()
+        options = self.defaults.options_default()
+        desired_cap = self.defaults.desired_capabilites_default()
         cdriver_path = self.directory.chromedriver_path() #the function will return None(default), or a str path
-        self.driver =  uc.Chrome(desired_capabilities=caps,options=options,driver_executable_path=cdriver_path)
-        self.driver.minimize_window()
-        # driver.execute_cdp_cmd('Network.setUserAgentOverride', {"userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.54 Safari/537.36"})
+        self.driver =  uc.Chrome(desired_capabilities=desired_cap,options=options,driver_executable_path=cdriver_path,*self.args, **self.kwargs)
         norm_print("Driver initialized")
         
+    def init_cf(self,CFobj: CFBypass = CFBypass):
+        return CFobj(self.driver, self.directory)
 
     def load_cf(self):
         self.driver.get(self.destination) 
         de_print(self.driver.title)
-        cloud = CFBypass(self.driver, self.directory)
+        cloud = self.init_cf()
         return cloud.start()
 
     def main(self):
         self.initialize_chromedriver()
+        self.driver.minimize_window()
         return self.load_cf()
         
 

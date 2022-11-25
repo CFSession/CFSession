@@ -9,6 +9,7 @@ from .cfdirmodel import cfDirectory
 from datetime import timezone
 import requests
 import datetime
+from typing import Union
 import json
 import os
 
@@ -30,8 +31,10 @@ class cfSession():
       <Response [200]>
     """
 
-    def __init__(self,directory: cfDirectory = cfDirectory()):
+    def __init__(self,directory: cfDirectory = cfDirectory(),*cfarg, **cfkwarg):
         self.session = requests.Session()
+        self.arg = cfarg
+        self.kwarg = cfkwarg
         self.directory = directory
         self.cookieChecker = cfSessionHandler(self.directory)
         self._setcookies_status = self.set_cookies()
@@ -104,7 +107,7 @@ class cfSession():
     def reload_token(self,site_requested,reset=False):
         cookieStatus =  self.cookieChecker.cookie_available()
         if not cookieStatus[0] or reset:
-            self.cf_proccache = SiteBrowserProcess(site_requested,directory=self.directory)
+            self.cf_proccache = self._class_initialize(site_requested,directory=self.directory,*self.arg,**self.kwarg)
             if reset:
                 self.cookieChecker.delete_cookies()
             self.cf_proccache.start()
@@ -190,8 +193,10 @@ class cfSession():
         if isinstance(self.exception,CFException):
                 raise self.exception
 
+    def _class_initialize(self,site_requested,directory,*args,**kwargs):
+        return SiteBrowserProcess(site_requested,directory=directory,*args,**kwargs)
+
     def close(self):
-        self.session.close()
         self.session.close()
         if self.cf_proccache:
             self.cf_proccache.close()
@@ -243,3 +248,25 @@ class cfSessionHandler:
         except OSError:
             pass
 
+class cfSimulacrum(cfSession):
+    def __init__(self, *aer, **res):
+        super().__init__(*aer,**res)
+        self.cdriver = None
+        self.cfinder = None
+        self.site = None
+        
+    def copen(self, site_requested, *aer, **res): # returns SiteBrowserProcess
+        self.site = site_requested
+        self.cdriver = self._class_initialize(site_requested,directory=self.directory, *aer, **res)
+        self.cdriver._init_chromedriver_manual() 
+        self.cdriver.driver.get(self.site)
+
+    def find(self): #Genera
+        self.cfinder = CFBypass(self.cdriver.driver, self.directory)
+        return self.cfinder
+
+    def search(self,target_title: Union[str, list] = None):
+        if not self.cfinder:
+            self.cfinder = CFBypass(self.cdriver.driver, self.directory)
+        self.cfinder.TARGET_NAME = target_title if target_title != None else self.cfinder.TARGET_NAME
+        self.cfinder.start()
