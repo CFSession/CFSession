@@ -1,0 +1,10 @@
+{
+    "tests": [
+        {"name": "bypass-IUAM_test.py", "res": "dyk1"},
+        {"name": "changeDirectory_test.py", "res": "dyk1"},
+        {"name": "raise_test.py", "res": "dxk1"},
+        {"name": "savecookie_test.py", "res": "dyk1"},
+        {"name": "setchromedriver_test.py", "res": "dyk1"},
+        {"name": "simulacrum_test.py", "res": "dyk1"}
+    ]
+}
