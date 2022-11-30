@@ -2,7 +2,7 @@
 
 from .cf import CFBypass
 from .cf import SiteBrowserProcess
-from .cfbrowser import cfSession
+from .cfbrowser import cfSession, cfSimulacrum
 from .cfcookie import cfCookieHandler
 from .cfdirmodel import cfDirectory
 from .cfexception import HTTPError
