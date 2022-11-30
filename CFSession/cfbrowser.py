@@ -255,13 +255,14 @@ class cfSimulacrum(cfSession):
         self.cfinder = None
         self.site = None
         
-    def copen(self, site_requested, *aer, **res): # returns SiteBrowserProcess
+    def copen(self, site_requested, *aer, **res) -> SiteBrowserProcess: # returns SiteBrowserProcess
         self.site = site_requested
         self.cdriver = self._class_initialize(site_requested,directory=self.directory, *aer, **res)
         self.cdriver._init_chromedriver_manual() 
         self.cdriver.driver.get(self.site)
+        return self.cdriver
 
-    def find(self): #Genera
+    def find(self) -> CFBypass: #returns CFBypass
         self.cfinder = CFBypass(self.cdriver.driver, self.directory)
         return self.cfinder
 
