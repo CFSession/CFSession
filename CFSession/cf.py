@@ -15,13 +15,26 @@ STDOUT = False
 DEBUG = False
 DUMMY = False
 
-def de_print(text):
+def de_print(text: str):
     if DEBUG:
-        print(text)
+        text = text.encode('ascii', 'ignore')
+        try:
+            print(text)
+        except UnicodeEncodeError:
+            print("Unicode error occured cannot print")
+        except Exception as e:
+            print("[warn] Error occured on a debugger de", e)
+    
     
 def norm_print(text):
     if STDOUT or DEBUG:
-        print(text)
+        text = text.encode('ascii', 'ignore')
+        try:
+            print(text)
+        except UnicodeEncodeError:
+            print("Unicode error occured cannot print")
+        except Exception as e:
+            print("[warn] Error occured on a debugger norm", e)
 
 def warn_print(text, level: int = 2): # 0-Important, 1-If possible, 2-Unimportant (debug purposes)
     acceptable = STDOUT + DEBUG
