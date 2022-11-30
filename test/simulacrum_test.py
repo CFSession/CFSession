@@ -7,8 +7,7 @@ if __name__ == "__main__":
     simSession = cfSimulacrum()
     
     #Manually generate cookie and break down the steps of CFSession
-    #This is useful for reCaptcha bypass where 
-    #It is not needed to assign these objects 
+    #This is useful for reCaptcha bypass where it requires user intervention and cannot be done fully automatically
     print("Initializing drivers")
     browserprocess = simSession.copen("https://www.youtube.com/watch?v=fgkgL8Z6z-c") # CFSession.cf.SiteBrowserProcess
     print("Create Finder object")
@@ -18,6 +17,7 @@ if __name__ == "__main__":
     #simFind.TARGET_NAME = ["RAINING IN ＴＯＫＹＯ (Lofi HipHop) - YouTube"] #Alternate way to set target title (Can be used to dyanamically change target)
     
     #If you leave the page by clicking another video, it will close the window and save the cookies
+    #If you haven't noticed, this will be useful for login pages where there are anti-robot verification.
 
     print("Done")
     
