@@ -47,25 +47,26 @@ def tester():
         s = None
         if file in ignore:
             continue
-        try:
-            target = os.path.join(path,file)
-            stat = subprocess.Popen(["python", target],shell=True,stdout=subprocess.PIPE, encoding="utf-8")
-            outcollect(stat.communicate()[0])
-            if stat.returncode == 0:
-                s = def_print(True,file)
-            else:
+        elif file == expected.get("name"):
+            try:
+                target = os.path.join(path,file)
+                stat = subprocess.Popen(["python", target],shell=True,stdout=subprocess.PIPE, encoding="utf-8")
+                outcollect(stat.communicate()[0])
+                if stat.returncode == 0:
+                    s = def_print(True,file)
+                else:
+                    s = def_print(False,file)
+            except subprocess.CalledProcessError as e:
                 s = def_print(False,file)
-        except subprocess.CalledProcessError as e:
-            s = def_print(False,file)
-        finally:
-            for exp in expected.get("tests"):
-                if exp.get("name") == file:
-                    print(exp.get("res"))
-                    test.append(s == exp.get("res")) # expecting pass
-                    assert s == exp.get("res") # expecting pass
-                    break
-            else:
-                assert False # Did you configure exp_res.json properly?
+            finally:
+                for exp in expected.get("tests"):
+                    if exp.get("name") == file:
+                        print(exp.get("res"))
+                        test.append(s == exp.get("res")) # expecting pass
+                        assert s == exp.get("res") # expecting pass
+                        break
+                else:
+                    assert False # Did you configure exp_res.json properly?
     else:
         for n, each_iter in enumerate(test):
             if each_iter:
