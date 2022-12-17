@@ -50,7 +50,7 @@ def tester():
         elif file in [expf.get("name") for expf in expected.get("tests")]:
             try:
                 target = os.path.join(path,file)
-                stat = subprocess.Popen(["python", target],shell=True,stdout=subprocess.PIPE, encoding="utf-8")
+                stat = subprocess.Popen(["python", target],stdout=subprocess.PIPE, encoding="utf-8")
                 outcollect(stat.communicate()[0])
                 if stat.returncode == 0:
                     s = def_print(True,file)
