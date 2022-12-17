@@ -47,7 +47,7 @@ def tester():
         s = None
         if file in ignore:
             continue
-        elif file == expected.get("name"):
+        elif file in [expf.get("name") for expf in expected.get("tests")]:
             try:
                 target = os.path.join(path,file)
                 stat = subprocess.Popen(["python", target],shell=True,stdout=subprocess.PIPE, encoding="utf-8")
