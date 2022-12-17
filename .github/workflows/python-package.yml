@@ -46,9 +46,9 @@ jobs:
     # You may pin to the exact commit or the version.
     # uses: GabrielBB/xvfb-action@86d97bde4a65fe9b290c0b3fb92c2c4ed0e5302d
       uses: GabrielBB/xvfb-action@v1.6
-        with:
-        # Command to execute using xvfb 
-        # Directory to execute command on, defaults to ./
+      with:
+      # Command to execute using xvfb 
+      # Directory to execute command on, defaults to ./
         run: |
           pytest tester.py -s
       #working-directory: # optional
