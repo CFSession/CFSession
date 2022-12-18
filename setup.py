@@ -30,7 +30,7 @@ setup(
     ],
     install_requires=[
         'requests>=2.25.0',
-        'undetected-chromedriver>=3.1.3'
+        'undetected-chromedriver>=3.1.6'
     ],
     packages=['CFSession'],
     python_requires=">=3.6",
