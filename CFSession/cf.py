@@ -138,6 +138,10 @@ class SiteBrowserProcess:
 
     def main(self):
         self.initialize_chromedriver()
+        #Based on https://stackoverflow.com/questions/66172852/how-to-un-minimize-selenium-window/66172915#66172915
+        handle_of_the_window = self.driver.current_window_handle
+        self.driver.switch_to.window(handle_of_the_window)
+        self.driver.set_window_rect(0, 0)
         self.driver.minimize_window()
         return self.load_cf()
         
