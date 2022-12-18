@@ -38,7 +38,8 @@ jobs:
         chromium-version: 1056734
     - name: Install package itself
       run: |
-        python -m pip install --upgrade CFSession
+        ls -a
+        python -m pip install --upgrade .
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
