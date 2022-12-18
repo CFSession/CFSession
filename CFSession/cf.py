@@ -1,5 +1,6 @@
 import undetected_chromedriver as uc
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+from selenium.common.exceptions import WebDriverException
 from .cfdefaults import Required_defaults
 from pathlib import Path
 import typing
@@ -138,7 +139,11 @@ class SiteBrowserProcess:
 
     def main(self):
         self.initialize_chromedriver()
-        self.driver.minimize_window()
+        try:
+            self.driver.minimize_window()
+        except WebDriverException as e:
+            warn_print("Failed to minimize window.",level=1)
+            de_print(e)
         return self.load_cf()
         
 
