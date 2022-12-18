@@ -1,5 +1,9 @@
-# CFSession
-A python script utilizing undetected-chromedriver to collect session cookies in a cloudflare IUAM protected site
+<H1 align="center"><b>CFSession</b></p>
+<p align="center">A python script utilizing undetected-chromedriver to collect session cookies in a cloudflare IUAM protected site</p>
+<p align="center">
+<a href="https://pypi.org/project/CFSession"><img src="https://github.com/Kinuseka/CFSession/actions/workflows/python-package.yml/badge.svg" alt="Build Test"></a>
+
+
 
 
 ## How it works
