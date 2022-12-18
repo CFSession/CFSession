@@ -1,5 +1,6 @@
 import undetected_chromedriver as uc
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+from selenium.common.exceptions import WebDriverException
 from .cfdefaults import Required_defaults
 from pathlib import Path
 import typing
@@ -15,13 +16,26 @@ STDOUT = False
 DEBUG = False
 DUMMY = False
 
-def de_print(text):
+def de_print(text: str):
     if DEBUG:
-        print(text)
+        text = text.encode('ascii', 'ignore')
+        try:
+            print(text)
+        except UnicodeEncodeError:
+            print("Unicode error occured cannot print")
+        except Exception as e:
+            print("[warn] Error occured on a debugger de", e)
+    
     
 def norm_print(text):
     if STDOUT or DEBUG:
-        print(text)
+        text = text.encode('ascii', 'ignore')
+        try:
+            print(text)
+        except UnicodeEncodeError:
+            print("Unicode error occured cannot print")
+        except Exception as e:
+            print("[warn] Error occured on a debugger norm", e)
 
 def warn_print(text, level: int = 2): # 0-Important, 1-If possible, 2-Unimportant (debug purposes)
     acceptable = STDOUT + DEBUG
@@ -125,7 +139,11 @@ class SiteBrowserProcess:
 
     def main(self):
         self.initialize_chromedriver()
-        self.driver.minimize_window()
+        try:
+            self.driver.minimize_window()
+        except WebDriverException as e:
+            warn_print("Failed to minimize window.",level=1)
+            de_print(e)
         return self.load_cf()
         
 
