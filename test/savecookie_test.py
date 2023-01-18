@@ -4,7 +4,7 @@ from CFSession import cfDirectory
 import os
 
 if __name__ == "__main__":
-    session = cfSession(chromedriver_path=os.path.join(os.path.dirname(__file__), "bin/chromedriver108.exe"))
+    session = cfSession(directory=cfDirectory(chromedriver_path=os.path.join(os.path.dirname(__file__), "bin/chromedriver108.exe")))
     res = session.get("http://nowsecure.nl") #IUAM protected site
     cookies = cfCookieHandler("nowsecure.json") #Filename
     cookies.dump(session)
