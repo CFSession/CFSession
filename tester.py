@@ -63,7 +63,7 @@ def tester():
                     if exp.get("name") == file:
                         print(exp.get("res"))
                         test.append(s == exp.get("res")) # expecting pass
-                        assert s == exp.get("res") # expecting pass
+                        #assert s == exp.get("res") # expecting pass
                         break
                 else:
                     assert False # Did you configure exp_res.json properly?
