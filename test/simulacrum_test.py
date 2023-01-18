@@ -11,7 +11,7 @@ def looptill(driver):
     driver.get("https://www.youtube.com/watch?v=zmWstsNBcTM")
 
 if __name__ == "__main__":
-    simSession = cfSimulacrum()
+    simSession = cfSimulacrum(version_main=108)
     
     #Manually generate cookie and break down the steps of CFSession
     #This is useful for reCaptcha bypass where it requires user intervention and cannot be done fully automatically
