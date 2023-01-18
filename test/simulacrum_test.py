@@ -1,4 +1,5 @@
 from CFSession import cfSimulacrum
+from CFSession import cfDirectory
 from CFSession import cf
 from threading import Thread
 import time
@@ -11,7 +12,7 @@ def looptill(driver):
     driver.get("https://www.youtube.com/watch?v=zmWstsNBcTM")
 
 if __name__ == "__main__":
-    simSession = cfSimulacrum(version_main=108)
+    simSession = cfSimulacrum(cfDirectory(chromedriver_path="bin/chomedriver108"))
     
     #Manually generate cookie and break down the steps of CFSession
     #This is useful for reCaptcha bypass where it requires user intervention and cannot be done fully automatically
