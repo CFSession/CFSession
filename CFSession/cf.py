@@ -7,7 +7,6 @@ import typing
 import time
 import sys
 import json
-import json
 
 #Not a constant. CAPITAL for more readable syntax
 #If constant is ever declared we will use CONST_VARIABLE_NAME
