@@ -16,13 +16,23 @@ class Required_defaults:
       >>> import CFSession
       >>> defaults = CFSession.Required_defaults()
       >>> defaults.options = uc.ChromeOptions #You can modify options here
-      >>> defaults.dcp = DesirecCapabilities().CHROME #You can modify DesiredCapabilites
+      >>> defaults.dcp = DesiredCapabilities().CHROME #You can modify DesiredCapabilites
       >>> CFSession.cf.SiteBrowserProcess(ignore_defaults=True,defaults=defaults)
+    
+    Since ChromeOptions cannot be reused:
+      `Required_defaults.reset_objects()`
+      will fix this issue
     """
     def __init__(self) -> None:
-        self.options = uc.ChromeOptions() 
-        self.dcp = DesiredCapabilities().CHROME 
-    def options_default(self) -> uc.ChromeOptions():    
+        self.options = None
+        self.dcp = None
+
+    def reset_objects(self, default = True) -> None:
+        #reset current state 
+        self.options = uc.ChromeOptions()
+        self.dcp = DesiredCapabilities().CHROME
+
+    def options_default(self) -> uc.ChromeOptions():
         self.options.use_chromium=True
         self.options.add_argument("--disable-renderer-backgrounding")
         self.options.add_argument("--disable-backgrounding-occluded-windows")
