@@ -29,12 +29,10 @@ jobs:
         python -m pip install --upgrade pip==21.3.1
         python -m pip install flake8 pytest
         sudo apt-get install xvfb
-    - name: Setup Chrome
-      # You may pin to the exact commit or the version.
-      # uses: browser-actions/setup-chrome@4fa655aad48f56911cad16db9252399a9e592848
-      uses: browser-actions/setup-chrome@v0.0.0
+    - name: Install chromium
+      uses: browser-actions/setup-chrome@v1
       with:
-        chromium-version: 1056734
+        chrome-version: latest
     - name: Install package itself
       run: |
         ls -a
@@ -46,4 +44,5 @@ jobs:
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with pytest with xvfb
-      run: xvfb-run --server-args="-screen 0, 1366x768x24" pytest tester.py -s
+      run: |
+        xvfb-run --server-args="-screen 0, 1366x768x24" pytest tester.py -s
