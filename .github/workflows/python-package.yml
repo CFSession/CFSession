@@ -29,10 +29,22 @@ jobs:
         python -m pip install --upgrade pip==21.3.1
         python -m pip install flake8 pytest
         sudo apt-get install xvfb
-    - name: Setup Chrome
-      # You may pin to the exact commit or the version.
-      # uses: browser-actions/setup-chrome@4fa655aad48f56911cad16db9252399a9e592848
-      uses: browser-actions/setup-chrome@v1
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y unzip libx11-xcb1 libxcomposite1 libxdamage1 libxext6 libxfixes3 libnss3 libnspr4 libgconf-2-4 libasound2 libatk1.0-0 libgtk-3-0
+
+    - name: Download Chromium using commit hash
+      run: |
+        CHROMIUM_COMMIT_HASH=c10cae35ebcd36283824b7a906ebf78397bdf532
+        CHROMIUM_ARCHIVE=chromium-${CHROMIUM_COMMIT_HASH}.zip
+        wget -O ${CHROMIUM_ARCHIVE} "https://github.com/chromium/chromium/archive/${CHROMIUM_COMMIT_HASH}.zip"
+
+    - name: Extract Chromium
+      run: |
+        unzip chromium-*.zip
+        CHROMIUM_DIR=$(ls -d chromium-*/)
+        echo "CHROMIUM_DIR=${CHROMIUM_DIR}" >> $GITHUB_ENV
     - name: Install package itself
       run: |
         ls -a
