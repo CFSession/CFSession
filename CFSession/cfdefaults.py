@@ -33,9 +33,13 @@ class Required_defaults:
         self.dcp = DesiredCapabilities().CHROME
 
     def options_default(self) -> uc.ChromeOptions():
-        self.options.use_chromium=True
-        self.options.add_argument("--disable-renderer-backgrounding")
-        self.options.add_argument("--disable-backgrounding-occluded-windows")
+        try:
+            self.options.use_chromium=True
+            self.options.add_argument("--disable-renderer-backgrounding")
+            self.options.add_argument("--disable-backgrounding-occluded-windows")
+        except AttributeError:
+            self.reset_objects()
+            return self.options_default()
         return self.options
 
     def desired_capabilites_default(self) -> DesiredCapabilities:
