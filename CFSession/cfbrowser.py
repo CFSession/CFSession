@@ -149,7 +149,7 @@ class cfSession():
                 http_code = e.response.status_code
                 caught_exception = e
                 if http_code == 404:
-                    self.exception = NotFound(e)
+                    self.exception = NotFound(response=e.response)
                     break
                 elif http_code == 503:
                     #CF blocked us, update the token
@@ -163,25 +163,25 @@ class cfSession():
                 continue
             except requests.exceptions.ConnectionError as e:
                 caught_exception = e
-                self.exception = NetworkError(e)
+                self.exception = NetworkError(response=e.response)
                 break
             except requests.exceptions.URLRequired as e:
-                self.exception = URLRequired(e)
+                self.exception = URLRequired(response=e.response)
                 break
             except requests.exceptions.TooManyRedirects as e:
-                self.exception = TooManyRedirects(e)
+                self.exception = TooManyRedirects(response=e.response)
                 break
             except requests.exceptions.Timeout as e:
-                self.exception = TimeoutError(e)
+                self.exception = TimeoutError(response=e.response)
                 break
             except requests.exceptions.RequestException as e: #When an arbitrary error occurs
-                self.exception = CFException(e)
+                self.exception = CFException(response=e.response)
                 break
         else:
             caught_code = caught_exception.response.status_code
             if caught_code == 503:
-                self.exception = CloudflareBlocked(caught_exception)
-            self.exception = HTTPError(caught_exception)
+                self.exception = CloudflareBlocked(response=caught_exception.response)
+            self.exception = HTTPError(response=caught_exception.response)
         try:
             content.raise_for_status = lambda: self._response_hook_raiseforstatus(content)
         except AttributeError: #Indicates Response was not created, this usually means that the error is non-HTTP and must be raised immediately

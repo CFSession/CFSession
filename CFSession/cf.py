@@ -124,7 +124,13 @@ class SiteBrowserProcess:
         options = self.defaults.options_default()
         desired_cap = self.defaults.desired_capabilites_default()
         cdriver_path = self.directory.chromedriver_path() #the function will return None(default), or a str path
-        self.driver =  uc.Chrome(desired_capabilities=desired_cap,options=options,driver_executable_path=cdriver_path,*self.args, **self.kwargs)
+        try:
+            self.driver =  uc.Chrome(desired_capabilities=desired_cap,options=options,driver_executable_path=cdriver_path,*self.args, **self.kwargs)
+        except RuntimeError: #Catch if the objects were reused
+            self.defaults.reset_objects()
+            options = self.defaults.options_default()
+            desired_cap = self.defaults.desired_capabilites_default()
+            self.driver =  uc.Chrome(desired_capabilities=desired_cap,options=options,driver_executable_path=cdriver_path,*self.args, **self.kwargs)
         norm_print("Driver initialized")
         
     def init_cf(self,CFobj: CFBypass = CFBypass):
