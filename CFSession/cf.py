@@ -128,6 +128,8 @@ class SiteBrowserProcess:
             self.driver =  uc.Chrome(desired_capabilities=desired_cap,options=options,driver_executable_path=cdriver_path,*self.args, **self.kwargs)
         except RuntimeError: #Catch if the objects were reused
             self.defaults.reset_objects()
+            options = self.defaults.options_default()
+            desired_cap = self.defaults.desired_capabilites_default()
             self.driver =  uc.Chrome(desired_capabilities=desired_cap,options=options,driver_executable_path=cdriver_path,*self.args, **self.kwargs)
         norm_print("Driver initialized")
         
