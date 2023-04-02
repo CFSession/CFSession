@@ -43,7 +43,7 @@ def def_print(status,output):
         print(f"Test returned Error at {output}")
         return FAILED
 def tester():
-    for file in dir_list:
+    for numfile, file in enumerate(dir_list):
         s = None
         if file in ignore:
             continue
@@ -53,11 +53,12 @@ def tester():
                 stat = subprocess.Popen(["python", target],stdout=subprocess.PIPE, encoding="utf-8")
                 outcollect(stat.communicate()[0])
                 if stat.returncode == 0:
-                    s = def_print(True,file)
+                    s = def_print(True,f"{file} - #{numfile}")
                 else:
-                    s = def_print(False,file)
+                    s = def_print(False,f"{file} - #{numfile}")
             except subprocess.CalledProcessError as e:
-                s = def_print(False,file)
+                print('Test #',numfile)
+                s = def_print(False,f"{file} - #{numfile}")
             finally:
                 for exp in expected.get("tests"):
                     if exp.get("name") == file:
