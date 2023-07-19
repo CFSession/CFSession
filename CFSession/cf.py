@@ -160,7 +160,7 @@ class SiteBrowserProcess:
         norm_print("Driver initialized")
         
     def init_cf(self,CFobj: CFBypass = CFBypass):
-        de_print("Bypass mode enabled:",self.bypass_mode)
+        de_print(f"Bypass mode enabled: {self.bypass_mode}")
         return CFobj(self.driver, self.directory, timeout = self.p_timeout, bypass_mode = self.bypass_mode)
 
     def load_cf(self):
