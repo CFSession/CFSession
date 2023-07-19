@@ -26,11 +26,12 @@ DUMMY = False
 
 def de_print(text: str):
     if DEBUG:
-        text = text.encode('ascii', 'ignore')
         try:
             print(text)
         except UnicodeEncodeError:
-            print("Unicode error occured cannot print")
+            print("Uni Err, ascii md")
+            text = text.encode('ascii', 'ignore')
+            print(text)
         except Exception as e:
             print("[warn] Error occured on a debugger de", e)
     
