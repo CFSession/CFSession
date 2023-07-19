@@ -10,7 +10,7 @@ cf.DEBUG = True
 def looptill(driver):
     print("Thread started, will redirect in 5 seconds")
     time.sleep(5)
-    driver.get("https://www.youtube.com/watch?v=7UubKYqEy3s")
+    driver.get("https://www.youtube.com/watch?v=YMy5uugeEis")
 
 if __name__ == "__main__":
     simSession = cfSimulacrum()
@@ -18,12 +18,12 @@ if __name__ == "__main__":
     #Manually generate cookie and break down the steps of CFSession
     #This is useful for reCaptcha bypass where it requires user intervention and cannot be done fully automatically
     print("Initializing drivers")
-    browserprocess = simSession.copen("https://www.youtube.com/watch?v=YMy5uugeEis") # CFSession.cf.SiteBrowserProcess
+    browserprocess = simSession.copen("https://www.youtube.com/watch?v=7UubKYqEy3s") # CFSession.cf.SiteBrowserProcess
     print("Create Finder object")
     simFind = simSession.find() #returns CFSession.cf.CFBypass, this also initializes the selenium driver allowing you to change it
     redirect_thread = Thread(target=looptill,args=(browserprocess.driver,),daemon=True)
     redirect_thread.start()
-    simSession.search(target_title=["RAINING IN ＴＯＫＹＯ (Lofi HipHop) - YouTube"]) #Target title is the page title where it will wait until it is false.
+    simSession.search(target_title=["【東方ヴォーカルPV】WARNING×WARNING×WARNING【暁Records公式】"]) #Target title is the page title where it will wait until it is false.
     #"Welcome - Login" [Welcome - Login] = True | "Success login - Profile" [Welcome - Login] = False
     #simFind.TARGET_NAME = ["RAINING IN ＴＯＫＹＯ (Lofi HipHop) - YouTube"] #Alternate way to set target title (Can be used to dyanamically change target)
     

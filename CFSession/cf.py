@@ -115,7 +115,7 @@ class CFBypass:
             de_print("Cookies Saved")
 
 class SiteBrowserProcess:
-    def __init__(self, destination: str, directory: str, ignore_defaults: bool = False, defaults: typing.Union[Required_defaults, bool] = Required_defaults(), process_timeout: int = 40, *args, **kwargs) -> None:
+    def __init__(self, destination: str, directory: str, ignore_defaults: bool = False, defaults: typing.Union[Required_defaults, bool] = Required_defaults(), process_timeout: int = 40, bypass_mode: bool = True, *args, **kwargs) -> None:
         self.args = args
         self.kwargs = kwargs
         self.defaults = defaults
@@ -124,7 +124,7 @@ class SiteBrowserProcess:
         self.directory = directory
         self.process_done = False
         self.isheadless = False
-        self.bypass_mode = True
+        self.bypass_mode = bypass_mode
         self.exception = None
         self.has_started = False
         self.p_timeout = process_timeout
@@ -160,6 +160,7 @@ class SiteBrowserProcess:
         norm_print("Driver initialized")
         
     def init_cf(self,CFobj: CFBypass = CFBypass):
+        de_print("Bypass mode enabled:",self.bypass_mode)
         return CFobj(self.driver, self.directory, timeout = self.p_timeout, bypass_mode = self.bypass_mode)
 
     def load_cf(self):

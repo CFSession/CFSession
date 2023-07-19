@@ -39,7 +39,6 @@ class cfSession():
         self.cookieChecker = cfSessionHandler(self.directory)
         self._setcookies_status = self.set_cookies()
         self.cf_proccache = None
-        self.bypass_mode = True
 
     def __enter__(self):
         return self
@@ -111,7 +110,6 @@ class cfSession():
             self.cf_proccache = self._class_initialize(site_requested,directory=self.directory,*self.arg,**self.kwarg)
             if reset:
                 self.cookieChecker.delete_cookies()
-            self.cf_proccache.bypass_mode = self.bypass_mode
             self.cf_proccache.start()
             self.cf_proccache.close()
         
@@ -197,7 +195,7 @@ class cfSession():
 
     def _class_initialize(self,site_requested,directory,*args,**kwargs):
         return SiteBrowserProcess(site_requested,directory=directory,*args,**kwargs)
-
+    
     def close(self):
         self.session.close()
         if self.cf_proccache:
@@ -260,13 +258,13 @@ class cfSimulacrum(cfSession):
         
     def copen(self, site_requested, *aer, **res) -> SiteBrowserProcess: # returns SiteBrowserProcess
         self.site = site_requested
-        self.cdriver = self._class_initialize(site_requested,directory=self.directory, *aer, **res)
+        self.cdriver = self._class_initialize(site_requested,directory=self.directory, bypass_mode=self.bypass_mode, *aer, **res)
         self.cdriver._init_chromedriver_manual() 
         self.cdriver.driver.get(self.site)
         return self.cdriver
 
     def find(self) -> CFBypass: #returns CFBypass
-        self.cfinder = CFBypass(self.cdriver.driver, self.directory)
+        self.cfinder = CFBypass(self.cdriver.driver, self.directory, bypass_mode=self.bypass_mode)
         return self.cfinder
 
     def search(self,target_title: Union[str, list] = None):
