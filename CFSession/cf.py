@@ -1,12 +1,21 @@
+#UC
 import undetected_chromedriver as uc
+#Sel
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.common.exceptions import WebDriverException
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
+
+#Modules
 from .cfdefaults import Required_defaults
 from pathlib import Path
 import typing
 import time
 import sys
 import json
+import threading
 
 #Not a constant. CAPITAL for more readable syntax
 #If constant is ever declared we will use CONST_VARIABLE_NAME
@@ -49,17 +58,31 @@ def warn_print(text, level: int = 2): # 0-Important, 1-If possible, 2-Unimportan
         print(f"[WARN] {text}")
 
 class CFBypass:
-    def __init__(self, driver, directory, target = ["Just a moment...","Please Wait..."]) -> None:
+    def __init__(self, driver: uc.Chrome, directory, target = ["Just a moment...","Please Wait..."], timeout: int = 40) -> None:
         self.TARGET_NAME = target
         self.driver = driver
+        self.website = driver.current_url
         self.directory = directory
-        self.timeout = 40
+        self.timeout = timeout
     
     def start(self):
         return self._main_process()
 
+    def init_bypass(self):
+        WaitFor = lambda i: WebDriverWait(self.driver, 10).until(EC.visibility_of(self.driver.find_element(By.TAG_NAME, 'body'))) and time.sleep(i)
+        self.driver.execute_script(f'window.open("{self.website}","_blank");')
+        WaitFor(5)
+        self.driver.switch_to.window(window_name=self.driver.window_handles[0])
+        self.driver.close() # close first tab
+        self.driver.switch_to.window(window_name=self.driver.window_handles[0]) 
+        WaitFor(2)
+        self.driver.get("https://google.com")
+        WaitFor(2)
+        self.driver.get(self.website)
+        
     def _main_process(self):
         timeout = 0
+        self.init_bypass()
         while any(ext in self.driver.title for ext in self.TARGET_NAME):
             timeout += 1
             if timeout >= self.timeout:
@@ -91,7 +114,7 @@ class CFBypass:
             de_print("Cookies Saved")
 
 class SiteBrowserProcess:
-    def __init__(self, destination: str, directory: str, ignore_defaults: bool = False, defaults: typing.Union[Required_defaults, bool] = Required_defaults(), *args, **kwargs) -> None:
+    def __init__(self, destination: str, directory: str, ignore_defaults: bool = False, defaults: typing.Union[Required_defaults, bool] = Required_defaults(), process_timeout: int = 40, *args, **kwargs) -> None:
         self.args = args
         self.kwargs = kwargs
         self.defaults = defaults
@@ -102,6 +125,7 @@ class SiteBrowserProcess:
         self.isheadless = False
         self.exception = None
         self.has_started = False
+        self.p_timeout = process_timeout
         Path(self.directory.cache_path()).mkdir(parents=True, exist_ok=True) 
 
     def close(self):
@@ -134,7 +158,7 @@ class SiteBrowserProcess:
         norm_print("Driver initialized")
         
     def init_cf(self,CFobj: CFBypass = CFBypass):
-        return CFobj(self.driver, self.directory)
+        return CFobj(self.driver, self.directory, timeout = self.p_timeout)
 
     def load_cf(self):
         self.driver.get(self.destination) 

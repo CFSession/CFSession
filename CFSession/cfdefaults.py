@@ -37,6 +37,8 @@ class Required_defaults:
             self.options.use_chromium=True
             self.options.add_argument("--disable-renderer-backgrounding")
             self.options.add_argument("--disable-backgrounding-occluded-windows")
+            self.options.add_argument("--disable-popup-blocking")
+
         except AttributeError:
             self.reset_objects()
             return self.options_default()
