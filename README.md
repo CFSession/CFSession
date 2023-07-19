@@ -8,7 +8,7 @@
 
 ## How it works
 It relies on a modified selenium (undetected-chromedriver) to cloak on sites that block selenium based sessions. 
-When a program is able to pass through the IAUM or Captcha verification the program immedietely saves the session token to cache to be able to access to the site right away without needing to verify again when program closes(until the token expires).
+When a program is able to pass through the IUAM or Captcha verification the program immedietely saves the session token to cache to be able to access to the site right away without needing to verify again when program closes(until the token expires).
 
 The library wraps around requests library.
 
