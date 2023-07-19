@@ -31,10 +31,11 @@ class cfSession():
       <Response [200]>
     """
 
-    def __init__(self,directory: cfDirectory = cfDirectory(),*cfarg, **cfkwarg):
+    def __init__(self,directory: cfDirectory = cfDirectory(), headless_mode: bool = False,*cfarg, **cfkwarg):
         self.session = requests.Session()
         self.arg = cfarg
         self.kwarg = cfkwarg
+        self.headless = headless_mode
         self.directory = directory
         self.cookieChecker = cfSessionHandler(self.directory)
         self._setcookies_status = self.set_cookies()
@@ -194,7 +195,7 @@ class cfSession():
                 raise self.exception
 
     def _class_initialize(self,site_requested,directory,*args,**kwargs):
-        return SiteBrowserProcess(site_requested,directory=directory,*args,**kwargs)
+        return SiteBrowserProcess(site_requested,directory=directory,headless_mode=self.headless,*args,**kwargs)
     
     def close(self):
         self.session.close()

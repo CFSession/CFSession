@@ -2,8 +2,8 @@
 import undetected_chromedriver as uc
 #Sel
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+from selenium.common.exceptions import StaleElementReferenceException
 from selenium.common.exceptions import WebDriverException
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
@@ -68,9 +68,25 @@ class CFBypass:
     
     def start(self):
         return self._main_process()
+    
+    def find_element(self, element, max_attempts=3):
+        attempt = 1
+        while True:
+            de_print(f"Finding element: {element}")
+            try:
+                return self.driver.find_element(*element)
+            except StaleElementReferenceException as e:
+                de_print(f"Error element stale {attempt}/{max_attempts} {e}")
+                if attempt == max_attempts:
+                    raise
+                attempt += 1
 
     def init_bypass(self):
-        WaitFor = lambda i: WebDriverWait(self.driver, 10).until(EC.visibility_of(self.driver.find_element(By.TAG_NAME, 'body'))) and time.sleep(i)
+        WaitFor = lambda i: WebDriverWait(self.driver, 10).until(
+            EC.visibility_of(
+            self.find_element(
+            (By.TAG_NAME, 'body'),
+            ))) and time.sleep(i)
         self.driver.execute_script(f'window.open("{self.website}","_blank");')
         WaitFor(5)
         self.driver.switch_to.window(window_name=self.driver.window_handles[0])
@@ -115,7 +131,7 @@ class CFBypass:
             de_print("Cookies Saved")
 
 class SiteBrowserProcess:
-    def __init__(self, destination: str, directory: str, ignore_defaults: bool = False, defaults: typing.Union[Required_defaults, bool] = Required_defaults(), process_timeout: int = 40, bypass_mode: bool = True, *args, **kwargs) -> None:
+    def __init__(self, destination: str, directory: str, headless_mode: bool = False, ignore_defaults: bool = False, defaults: typing.Union[Required_defaults, bool] = Required_defaults(), process_timeout: int = 40, bypass_mode: bool = True, *args, **kwargs) -> None:
         self.args = args
         self.kwargs = kwargs
         self.defaults = defaults
@@ -123,7 +139,7 @@ class SiteBrowserProcess:
         self.destination = destination
         self.directory = directory
         self.process_done = False
-        self.isheadless = False
+        self.isheadless = headless_mode
         self.bypass_mode = bypass_mode
         self.exception = None
         self.has_started = False
@@ -151,7 +167,7 @@ class SiteBrowserProcess:
         desired_cap = self.defaults.desired_capabilites_default()
         cdriver_path = self.directory.chromedriver_path() #the function will return None(default), or a str path
         try:
-            self.driver =  uc.Chrome(desired_capabilities=desired_cap,options=options,driver_executable_path=cdriver_path,*self.args, **self.kwargs)
+            self.driver =  uc.Chrome(desired_capabilities=desired_cap,options=options,driver_executable_path=cdriver_path,headless=self.isheadless,*self.args, **self.kwargs)
         except RuntimeError: #Catch if the objects were reused
             self.defaults.reset_objects()
             options = self.defaults.options_default()
