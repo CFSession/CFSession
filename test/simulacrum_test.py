@@ -10,7 +10,7 @@ cf.DEBUG = True
 def looptill(driver):
     print("Thread started, will redirect in 5 seconds")
     time.sleep(5)
-    driver.get("https://www.youtube.com/watch?v=zmWstsNBcTM")
+    driver.get("https://www.youtube.com/watch?v=7UubKYqEy3s")
 
 if __name__ == "__main__":
     simSession = cfSimulacrum()
@@ -18,7 +18,7 @@ if __name__ == "__main__":
     #Manually generate cookie and break down the steps of CFSession
     #This is useful for reCaptcha bypass where it requires user intervention and cannot be done fully automatically
     print("Initializing drivers")
-    browserprocess = simSession.copen("https://www.youtube.com/watch?v=fgkgL8Z6z-c") # CFSession.cf.SiteBrowserProcess
+    browserprocess = simSession.copen("https://www.youtube.com/watch?v=YMy5uugeEis") # CFSession.cf.SiteBrowserProcess
     print("Create Finder object")
     simFind = simSession.find() #returns CFSession.cf.CFBypass, this also initializes the selenium driver allowing you to change it
     redirect_thread = Thread(target=looptill,args=(browserprocess.driver,),daemon=True)
