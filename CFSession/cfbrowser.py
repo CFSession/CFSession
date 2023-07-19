@@ -254,6 +254,7 @@ class cfSimulacrum(cfSession):
         self.cdriver = None
         self.cfinder = None
         self.site = None
+        self.bypass_mode = False
         
     def copen(self, site_requested, *aer, **res) -> SiteBrowserProcess: # returns SiteBrowserProcess
         self.site = site_requested

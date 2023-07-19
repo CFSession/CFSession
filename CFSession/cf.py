@@ -58,12 +58,13 @@ def warn_print(text, level: int = 2): # 0-Important, 1-If possible, 2-Unimportan
         print(f"[WARN] {text}")
 
 class CFBypass:
-    def __init__(self, driver: uc.Chrome, directory, target = ["Just a moment...","Please Wait..."], timeout: int = 40) -> None:
+    def __init__(self, driver: uc.Chrome, directory, target = ["Just a moment...","Please Wait..."], timeout: int = 40, bypass_mode: bool = True) -> None:
         self.TARGET_NAME = target
         self.driver = driver
         self.website = driver.current_url
         self.directory = directory
         self.timeout = timeout
+        self.bypass_mode = bypass_mode
     
     def start(self):
         return self._main_process()
@@ -82,7 +83,7 @@ class CFBypass:
         
     def _main_process(self):
         timeout = 0
-        self.init_bypass()
+        if self.bypass_mode: self.init_bypass()
         while any(ext in self.driver.title for ext in self.TARGET_NAME):
             timeout += 1
             if timeout >= self.timeout:
@@ -123,6 +124,7 @@ class SiteBrowserProcess:
         self.directory = directory
         self.process_done = False
         self.isheadless = False
+        self.bypass_mode = True
         self.exception = None
         self.has_started = False
         self.p_timeout = process_timeout
@@ -158,7 +160,7 @@ class SiteBrowserProcess:
         norm_print("Driver initialized")
         
     def init_cf(self,CFobj: CFBypass = CFBypass):
-        return CFobj(self.driver, self.directory, timeout = self.p_timeout)
+        return CFobj(self.driver, self.directory, timeout = self.p_timeout, bypass_mode = self.bypass_mode)
 
     def load_cf(self):
         self.driver.get(self.destination) 
