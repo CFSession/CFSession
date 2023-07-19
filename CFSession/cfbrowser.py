@@ -39,6 +39,7 @@ class cfSession():
         self.cookieChecker = cfSessionHandler(self.directory)
         self._setcookies_status = self.set_cookies()
         self.cf_proccache = None
+        self.bypass_mode = True
 
     def __enter__(self):
         return self
@@ -110,6 +111,7 @@ class cfSession():
             self.cf_proccache = self._class_initialize(site_requested,directory=self.directory,*self.arg,**self.kwarg)
             if reset:
                 self.cookieChecker.delete_cookies()
+            self.cf_proccache.bypass_mode = self.bypass_mode
             self.cf_proccache.start()
             self.cf_proccache.close()
         
