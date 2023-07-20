@@ -3,8 +3,10 @@
 #Then files we need to follow will be listed here
 !.gitignore
 !.github/
-!CFSession/
-!test/
+!CFSession
+!test
+!CFSession/*
+!test/*
 !LICENSE
 !README.md
 !setup.cfg

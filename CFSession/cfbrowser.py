@@ -29,9 +29,24 @@ class cfSession():
       >>> with CFSession.cfSession() as s:
       ...     s.get('https://httpbin.org/get')
       <Response [200]>
+    
+    Parameters:
+        - directory (cfDirectory, optional): An instance of cfDirectory representing the directory to use. 
+                If not provided, a new cfDirectory instance will be created.
+
+        - headless_mode (bool, optional): Whether to run in headless mode (without a graphical user interface). 
+            Default is False.
+
+        - tries (int, optional): The number of tries or attempts to bypass cf without human intervention. Default is 2.
+
+        - *cfarg: Pass arguments to SiteBrowserProcess class (non-keyword arguments).
+
+        - **cfkwarg: Pass keyword arguments to SiteBrowserProcess class.
     """
 
-    def __init__(self,directory: cfDirectory = cfDirectory(), headless_mode: bool = False,*cfarg, **cfkwarg):
+    
+
+    def __init__(self,directory: cfDirectory = cfDirectory(), headless_mode: bool = False, tries: int = 3,*cfarg, **cfkwarg):
         self.session = requests.Session()
         self.arg = cfarg
         self.kwarg = cfkwarg
@@ -40,6 +55,7 @@ class cfSession():
         self.cookieChecker = cfSessionHandler(self.directory)
         self._setcookies_status = self.set_cookies()
         self.cf_proccache = None
+        self.tries = tries
 
     def __enter__(self):
         return self
@@ -132,7 +148,7 @@ class cfSession():
 
     def request(self,method,url,**kwargs) -> requests.Response:
         content = None
-        for t in range(0,2):
+        for t in range(0,self.tries):
             try:
                 if method == "GET":
                     content = self.session.get(url, **kwargs)
