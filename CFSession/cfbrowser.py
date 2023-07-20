@@ -37,7 +37,8 @@ class cfSession():
         - headless_mode (bool, optional): Whether to run in headless mode (without a graphical user interface). 
             Default is False.
 
-        - tries (int, optional): The number of tries or attempts to bypass cf without human intervention. Default is 2.
+        - tries (int, optional): The number of tries or attempts to bypass cf without human intervention. Default is 3.
+                If cf bypass fails, it will automatically revert to providing data from the original, un-bypassed site.
 
         - *cfarg: Pass arguments to SiteBrowserProcess class (non-keyword arguments).
 
