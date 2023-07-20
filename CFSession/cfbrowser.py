@@ -29,16 +29,34 @@ class cfSession():
       >>> with CFSession.cfSession() as s:
       ...     s.get('https://httpbin.org/get')
       <Response [200]>
+    
+    Parameters:
+        - directory (cfDirectory, optional): An instance of cfDirectory representing the directory to use. 
+                If not provided, a new cfDirectory instance will be created.
+
+        - headless_mode (bool, optional): Whether to run in headless mode (without a graphical user interface). 
+            Default is False.
+
+        - tries (int, optional): The number of tries or attempts to bypass cf without human intervention. Default is 3.
+                If cf bypass fails, it will automatically revert to providing data from the original, un-bypassed site.
+
+        - *cfarg: Pass arguments to SiteBrowserProcess class (non-keyword arguments).
+
+        - **cfkwarg: Pass keyword arguments to SiteBrowserProcess class.
     """
 
-    def __init__(self,directory: cfDirectory = cfDirectory(),*cfarg, **cfkwarg):
+    
+
+    def __init__(self,directory: cfDirectory = cfDirectory(), headless_mode: bool = False, tries: int = 3,*cfarg, **cfkwarg):
         self.session = requests.Session()
         self.arg = cfarg
         self.kwarg = cfkwarg
+        self.headless = headless_mode
         self.directory = directory
         self.cookieChecker = cfSessionHandler(self.directory)
         self._setcookies_status = self.set_cookies()
         self.cf_proccache = None
+        self.tries = tries
 
     def __enter__(self):
         return self
@@ -131,7 +149,7 @@ class cfSession():
 
     def request(self,method,url,**kwargs) -> requests.Response:
         content = None
-        for t in range(0,2):
+        for t in range(0,self.tries):
             try:
                 if method == "GET":
                     content = self.session.get(url, **kwargs)
@@ -194,8 +212,8 @@ class cfSession():
                 raise self.exception
 
     def _class_initialize(self,site_requested,directory,*args,**kwargs):
-        return SiteBrowserProcess(site_requested,directory=directory,*args,**kwargs)
-
+        return SiteBrowserProcess(site_requested,directory=directory,headless_mode=self.headless,*args,**kwargs)
+    
     def close(self):
         self.session.close()
         if self.cf_proccache:
@@ -254,16 +272,17 @@ class cfSimulacrum(cfSession):
         self.cdriver = None
         self.cfinder = None
         self.site = None
+        self.bypass_mode = False
         
     def copen(self, site_requested, *aer, **res) -> SiteBrowserProcess: # returns SiteBrowserProcess
         self.site = site_requested
-        self.cdriver = self._class_initialize(site_requested,directory=self.directory, *aer, **res)
+        self.cdriver = self._class_initialize(site_requested,directory=self.directory, bypass_mode=self.bypass_mode, *aer, **res)
         self.cdriver._init_chromedriver_manual() 
         self.cdriver.driver.get(self.site)
         return self.cdriver
 
     def find(self) -> CFBypass: #returns CFBypass
-        self.cfinder = CFBypass(self.cdriver.driver, self.directory)
+        self.cfinder = CFBypass(self.cdriver.driver, self.directory, bypass_mode=self.bypass_mode)
         return self.cfinder
 
     def search(self,target_title: Union[str, list] = None):
