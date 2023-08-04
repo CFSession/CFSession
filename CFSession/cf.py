@@ -30,19 +30,18 @@ def de_print(text: str):
             print(text)
         except UnicodeEncodeError:
             print("Uni Err, ascii md")
-            text = text.encode('ascii', 'ignore')
-            print(text)
+            print(text.encode('ascii', 'ignore'))
         except Exception as e:
             print("[warn] Error occured on a debugger de", e)
     
     
-def norm_print(text):
+def norm_print(text: str):
     if STDOUT or DEBUG:
-        text = text.encode('ascii', 'ignore')
         try:
             print(text)
         except UnicodeEncodeError:
-            print("Unicode error occured cannot print")
+            print("Uni Err, ascii md")
+            print(text.encode('ascii', 'ignore'))
         except Exception as e:
             print("[warn] Error occured on a debugger norm", e)
 
