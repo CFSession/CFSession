@@ -153,7 +153,7 @@ class cfSession():
 
     def request(self,method,url,**kwargs) -> requests.Response:
         content = None
-        self.set_headers()
+        self.set_agent()
         for t in range(0,self.tries):
             try:
                 if method == "GET":
