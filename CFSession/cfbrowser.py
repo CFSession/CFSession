@@ -6,6 +6,7 @@ This module contains the wrapper for Requests
 from .cfexception import CFException, CloudflareBlocked, HTTPError, NetworkError, NotFound, URLRequired, TooManyRedirects, Timeout, ConnectTimeout, ReadTimeout
 from .cf import CFBypass, SiteBrowserProcess
 from .cfdirmodel import cfDirectory    
+from .cfdefaults import cfConstant
 from datetime import timezone
 import requests
 import datetime
@@ -137,10 +138,13 @@ class cfSession():
             selenium_headers = json.load(open(self.directory.session_path(),"r"))
         except FileNotFoundError:
             return False
-        self.session.headers.update({"user-agent": selenium_headers})
+        self.set_agent(selenium_headers)
         for cookie in cookies:
             self.session.cookies.set(cookie['name'], cookie['value'], domain=cookie['domain'])
         return True
+    
+    def set_agent(self, user_agent=cfConstant.USER_AGENT):
+        self.session.headers.update({"user-agent": user_agent})
 
     def _handle_equalfunc(self):
         if not self._setcookies_status:
@@ -149,6 +153,7 @@ class cfSession():
 
     def request(self,method,url,**kwargs) -> requests.Response:
         content = None
+        self.set_headers()
         for t in range(0,self.tries):
             try:
                 if method == "GET":
