@@ -68,16 +68,19 @@ class CFBypass:
     def start(self):
         return self._main_process()
     
-    def find_element(self, element, max_attempts=3):
+    def find_element(self, element, max_attempts=3, target: uc.Chrome =False):
         attempt = 1
         while True:
             de_print(f"Finding element: {element}")
             try:
+                if target:
+                    target.find_element(*element)
                 return self.driver.find_element(*element)
             except StaleElementReferenceException as e:
                 de_print(f"Error element stale {attempt}/{max_attempts} {e}")
                 if attempt == max_attempts:
                     raise
+                time.sleep(1)
                 attempt += 1
 
     def init_bypass(self):
@@ -92,9 +95,6 @@ class CFBypass:
         self.driver.close() # close first tab
         self.driver.switch_to.window(window_name=self.driver.window_handles[0]) 
         WaitFor(2)
-        self.driver.get("https://google.com")
-        WaitFor(2)
-        self.driver.get(self.website)
         
     def _main_process(self):
         timeout = 0
@@ -111,6 +111,7 @@ class CFBypass:
             de_print("Done")
             self.save_cookie_verified()
             return True
+        de_print("Failed to bypass, return failure")
         return False
 
     def save_cookie(self, driver, file):
