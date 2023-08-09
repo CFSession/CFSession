@@ -10,6 +10,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 #Modules
 from .cfdefaults import Required_defaults
+from .cfdirmodel import cfDirectory
 from pathlib import Path
 import typing
 import time
@@ -96,15 +97,18 @@ class CFBypass:
     def init_bypass(self):
         self.driver.execute_script(f'window.open("{self.website}","_blank");')
         self.WaitForElement(10)
-        self.driver.switch_to.window(window_name=self.driver.window_handles[0])
+        self.driver.switch_to.window(window_name=self.driver.window_handles[0]) 
+        self.WaitForElement(5)
         self.driver.close()
         self.driver.switch_to.window(window_name=self.driver.window_handles[0]) 
     
     def click_bypass(self):
         #https://stackoverflow.com/questions/76575298/how-to-click-on-verify-you-are-human-checkbox-challenge-by-cloudflare-using-se
         try:
+            self.WaitForElement(5)
             WebDriverWait(self.driver, 5).until(EC.frame_to_be_available_and_switch_to_it((By.CSS_SELECTOR,"iframe[title='Widget containing a Cloudflare security challenge']")))
             WebDriverWait(self.driver, 5).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "label.ctp-checkbox-label"))).click()
+            de_print("Clicked on verify")
         except TimeoutException:
             de_print("Click bypass Timeout")
         except Exception:
@@ -149,7 +153,7 @@ class CFBypass:
             child.join()
 
 class SiteBrowserProcess:
-    def __init__(self, destination: str, directory: str, headless_mode: bool = False, ignore_defaults: bool = False, defaults: typing.Union[Required_defaults, bool] = Required_defaults(), process_timeout: int = 10, bypass_mode: bool = True, *args, **kwargs) -> None:
+    def __init__(self, destination: str, directory: cfDirectory, headless_mode: bool = False, ignore_defaults: bool = False, defaults: typing.Union[Required_defaults, bool] = Required_defaults(), process_timeout: int = 10, bypass_mode: bool = True, *args, **kwargs) -> None:
         self.args = args
         self.kwargs = kwargs
         self.defaults = defaults
