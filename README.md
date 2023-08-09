@@ -42,7 +42,7 @@ if __name__ == "__main__":
 enable headless mode:
 
 ```py
-session = CFSession.cfSession(headless=True)
+session = CFSession.cfSession(headless_mode=True)
 ```
 
 ### How to choose chrome version:
