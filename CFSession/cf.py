@@ -117,6 +117,9 @@ class CFBypass:
         except Exception:
             warn_print("An error occured on click_bypass")
 
+    def main_bypass(self):
+        self.click_bypass()
+
     def _main_process(self):
         timeout = 0
         if self.bypass_mode: self.init_bypass()
@@ -124,7 +127,7 @@ class CFBypass:
             timeout += 1
             if timeout >= self.timeout:
                 break
-            self.click_bypass()
+            if self.bypass_mode: self.main_bypass()
             norm_print("Waiting for cloudflare...")
             de_print(f"cur: {self.driver.title}")
             time.sleep(1)
