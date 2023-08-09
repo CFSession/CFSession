@@ -147,6 +147,7 @@ class cfSession():
             cookies = json.load(open(self.directory.cookie_path(),"r"))
             selenium_headers = json.load(open(self.directory.session_path(),"r"))
         except FileNotFoundError:
+            self.set_agent()
             return False
         self.set_agent(selenium_headers)
         for cookie in cookies:
@@ -163,7 +164,6 @@ class cfSession():
 
     def request(self,method,url,**kwargs) -> requests.Response:
         content = None
-        self.set_agent()
         for t in range(0,self.tries):
             try:
                 if method == "GET":
