@@ -10,6 +10,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 #Modules
 from .cfdefaults import Required_defaults
+from .cfdefaults import Required_defaults, cfConstant
+from .cfdirmodel import cfDirectory
 from pathlib import Path
 import typing
 import time
@@ -124,7 +126,7 @@ class CFBypass:
         json.dump(self.driver.execute_script("return navigator.userAgent;"), open(self.directory.session_path(),"w"))
         if DEBUG and DUMMY:
             de_print("DUMMY COOKIE")
-            dummy = [{"domain": ".nowsecure.nl", "expiry": 1690714605, "httpOnly": True, "name": "cf_clearance", "path": "/", "sameSite": "None", "secure": True, "value": "IOt5_jFk89BojBTV0NWAPj8zh4xq_zSxxt.2scnbY.4-1659175005-0-150"}]
+            dummy = cfConstant.DEBUG_DUMMY
             self.save_cookie(dummy , open(self.directory.cookie_path(),"w"))
         else:
             self.save_cookie(self.driver.get_cookies(), open(self.directory.cookie_path(),"w"))
