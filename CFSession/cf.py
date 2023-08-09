@@ -9,7 +9,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
 #Modules
-from .cfdefaults import Required_defaults
+from .cfdefaults import Required_defaults, cfConstant
 from pathlib import Path
 import typing
 import time
