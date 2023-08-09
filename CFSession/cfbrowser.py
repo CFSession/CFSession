@@ -211,7 +211,7 @@ class cfSession():
                 self.exception = Timeout(response=e.response)
                 break
             except requests.exceptions.RequestException as e: #When an arbitrary error occurs
-                self.exception = CFException(response=e.response)
+                self.exception = CFException(message=repr(e))
                 break
         else:
             caught_code = caught_exception.response.status_code
