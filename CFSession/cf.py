@@ -2,7 +2,7 @@
 import undetected_chromedriver as uc
 #Sel
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
-from selenium.common.exceptions import StaleElementReferenceException
+from selenium.common.exceptions import StaleElementReferenceException, TimeoutException
 from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
@@ -10,13 +10,12 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 #Modules
 from .cfdefaults import Required_defaults
-from .cfdefaults import Required_defaults, cfConstant
-from .cfdirmodel import cfDirectory
 from pathlib import Path
 import typing
 import time
 import sys
 import json
+import threading
 
 #Not a constant. CAPITAL for more readable syntax
 #If constant is ever declared we will use CONST_VARIABLE_NAME
@@ -66,6 +65,7 @@ class CFBypass:
         self.directory = directory
         self.timeout = timeout
         self.bypass_mode = bypass_mode
+        self.children = []
     
     def start(self):
         return self._main_process()
@@ -85,19 +85,40 @@ class CFBypass:
                 time.sleep(1)
                 attempt += 1
 
-    def init_bypass(self):
-        WaitFor = lambda i: WebDriverWait(self.driver, 10).until(
+    def WaitForElement(self, i):
+        WebDriverWait(self.driver, 10).until(
             EC.visibility_of(
             self.find_element(
             (By.TAG_NAME, 'body'),
-            ))) and time.sleep(i)
+        )))
+        time.sleep(i)
+
+    def init_bypass(self):
         self.driver.execute_script(f'window.open("{self.website}","_blank");')
-        WaitFor(5)
-        self.driver.switch_to.window(window_name=self.driver.window_handles[0])
-        self.driver.close() # close first tab
+        self.WaitForElement(10)
         self.driver.switch_to.window(window_name=self.driver.window_handles[0]) 
-        WaitFor(2)
-        
+        self.WaitForElement(5)
+        self.driver.close()
+        self.driver.switch_to.window(window_name=self.driver.window_handles[0])
+    
+    def click_bypass(self):
+        #https://stackoverflow.com/questions/76575298/how-to-click-on-verify-you-are-human-checkbox-challenge-by-cloudflare-using-se
+        try:
+            self.driver.execute_script(f'window.open("{self.website}","_blank");')
+            self.WaitForElement(5)
+            WebDriverWait(self.driver, 5).until(EC.frame_to_be_available_and_switch_to_it((By.CSS_SELECTOR,"iframe[title='Widget containing a Cloudflare security challenge']")))
+            WebDriverWait(self.driver, 5).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "label.ctp-checkbox-label"))).click()
+            de_print("Clicked on verify")
+        except TimeoutException:
+            de_print("Click bypass Timeout")
+            self.driver.close()
+            self.driver.switch_to.window(window_name=self.driver.window_handles[0])
+        except Exception:
+            warn_print("An error occured on click_bypass")
+
+    def main_bypass(self):
+        self.click_bypass()
+
     def _main_process(self):
         timeout = 0
         if self.bypass_mode: self.init_bypass()
@@ -105,6 +126,7 @@ class CFBypass:
             timeout += 1
             if timeout >= self.timeout:
                 break
+            if self.bypass_mode: self.main_bypass()
             norm_print("Waiting for cloudflare...")
             de_print(f"cur: {self.driver.title}")
             time.sleep(1)
@@ -120,7 +142,6 @@ class CFBypass:
         """Cookie save, requires driver and file"""
         json.dump(driver, file)
 
-
     def save_cookie_verified(self):
         de_print('saving cookie')
         json.dump(self.driver.execute_script("return navigator.userAgent;"), open(self.directory.session_path(),"w"))
@@ -131,9 +152,13 @@ class CFBypass:
         else:
             self.save_cookie(self.driver.get_cookies(), open(self.directory.cookie_path(),"w"))
             de_print("Cookies Saved")
+    
+    def clear_children(self):
+        for child in self.children:
+            child.join()
 
 class SiteBrowserProcess:
-    def __init__(self, destination: str, directory: str, headless_mode: bool = False, ignore_defaults: bool = False, defaults: typing.Union[Required_defaults, bool] = Required_defaults(), process_timeout: int = 40, bypass_mode: bool = True, *args, **kwargs) -> None:
+    def __init__(self, destination: str, directory: cfDirectory, headless_mode: bool = False, ignore_defaults: bool = False, defaults: typing.Union[Required_defaults, bool] = Required_defaults(), process_timeout: int = 10, bypass_mode: bool = True, *args, **kwargs) -> None:
         self.args = args
         self.kwargs = kwargs
         self.defaults = defaults

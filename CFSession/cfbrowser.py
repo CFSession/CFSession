@@ -123,6 +123,16 @@ class cfSession():
         self.url = url
         return self.request("DELETE", url, **kwargs)
 
+    def options(self, url, **kwargs) -> requests.Response:
+        r"""Sends an OPTIONS request.
+        :param url: URL for the new :class:`Request` object.
+        :param \*\*kwargs: Optional arguments that ``request`` takes.
+        :return: :class:`Response <Response>` object
+        :rtype: requests.Response
+        """
+        self.url = url
+        return self.request("OPTIONS", url, **kwargs)
+
     def reload_token(self,site_requested,reset=False):
         cookieStatus =  self.cookieChecker.cookie_available()
         if not cookieStatus[0] or reset:
@@ -166,10 +176,13 @@ class cfSession():
                     content = self.session.put(url, **kwargs)
                 elif method == "DELETE":
                     content = self.session.delete(url, **kwargs)
+                elif method == "OPTIONS":
+                    content = self.session.options(url, **kwargs)
                 content.raise_for_status()
                 return content
             except requests.exceptions.HTTPError as e:
                 http_code = e.response.status_code
+                http_content = e.response.content
                 caught_exception = e
                 if http_code == 404:
                     self.exception = NotFound(response=e.response)
@@ -198,7 +211,7 @@ class cfSession():
                 self.exception = Timeout(response=e.response)
                 break
             except requests.exceptions.RequestException as e: #When an arbitrary error occurs
-                self.exception = CFException(response=e.response)
+                self.exception = CFException(message=repr(e))
                 break
         else:
             caught_code = caught_exception.response.status_code

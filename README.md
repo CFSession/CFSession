@@ -8,7 +8,7 @@
 
 ## How it works
 It relies on a modified selenium (undetected-chromedriver) to cloak on sites that block selenium based sessions. 
-When a program is able to pass through the IUAM or Captcha verification the program immedietely saves the session token to cache to be able to access to the site right away without needing to verify again when program closes(until the token expires).
+When a program is able to pass through the IUAM or Captcha verification, it immediately saves the session token to access the site using requests library.
 
 The library wraps around requests library.
 
@@ -20,10 +20,11 @@ The library wraps around requests library.
 * PUT
 * PATCH
 * DELETE
+* OPTIONS
 
 ## Usage:
 
-**Normal Usage:**
+### Normal Usage:
 
 ```py
 import CFSession
@@ -38,8 +39,74 @@ if __name__ == "__main__":
         res = session.get("https://nowsecure.nl")
         print(res.content)
 ```
+enable headless mode:
 
+```py
+session = CFSession.cfSession(headless=True)
+```
 
+### How to choose chrome version:
+
+CFSession has `*args` and `**kwargs` which simply passes it to `uc.Chrome()`
+```py
+from CFSession import cfSession
+
+if __name__ == "__main__": 
+    session = cfSession(version_main=95) #pick chrome version 95
+```
+You can also use more options from `uc.Chrome()` and pass it from there 
+
+### How to modify chrome options:
+
+CFSession has `CFSession.Required_defaults()` This is a class which you can use to modify `options` and `DesiredCapabilities`, the default options are pre-configured to work with bypass capabilities and other features we incorporated so we do not recommend modifying them. (Unless you know what you are doing)
+```py
+from CFSession import Required_defaults, cf
+from undetected_chromedriver import uc
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+
+defaults = Required_defaults()
+defaults.options = uc.ChromeOptions()
+defaults.dcp = DesiredCapabilities().CHROME
+SBP = cf.SiteBrowserProcess(ignore_defaults=True,defaults=defaults) # Generate cf.SiteBrowserProcess 
+```
+
+**CFSession** does not fully support modifying `Required_defaults()`, but there are multiple ways to hack this limitation.
+
+1.) Using cfSession
+```py
+from CFSession import Required_defaults, cf, cfSession
+from undetected_chromedriver import uc
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+#cfSession uses _class_initialize to generate its own SiteBrowserProcess
+def function_hack(*args,**kwargs):
+    #Do ur stuff with the options and or DesiredCapabilities here.
+    defaults = Required_defaults()
+    defaults.options = uc.ChromeOptions()
+    defaults.dcp = DesiredCapabilities().CHROME
+    SBP = cf.SiteBrowserProcess(*args,**kwargs,ignore_defaults=True,defaults=defaults) # Generate cf.SiteBrowserProcess 
+    return SBP
+cfSession._class_initialize = function_hack
+cfSession.get(...)
+```
+
+2.) Using cfSimulacrum
+```py
+from CFSession import Required_defaults, cf, cfSimulacrum, cfDirectory
+from undetected_chromedriver import uc
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+
+#Do ur stuff with the options and or DesiredCapabilities here.
+defaults = Required_defaults()
+defaults.options = uc.ChromeOptions()
+defaults.dcp = DesiredCapabilities().CHROME
+SBP = cf.SiteBrowserProcess("https://nowsecure.nl",directory=cfDirectory(),ignore_defaults=True,defaults=defaults) # Generate cf.SiteBrowserProcess 
+
+cfsim = cfSimulacrum()
+cfsim.bypass_mode = True #cfSimulacrum has bypass_mode disabled by default, set it on
+cfsim.cdriver = SBP
+cfsim.find() #Run bypass
+response = cfsim.get("https://nowsecure.nl")
+```
 
 ## Installation:
 `python3 -m pip install CFSession`
@@ -49,21 +116,13 @@ if __name__ == "__main__":
 `pip3 install CFSession`
 
 
-
-
-
-
-
-
 ## Question: 
 
-**Why not just scrape fully on selenium?** There are some use cases that selenium might potentially cause more workloads than using requests directly, as selenium is a programmable browser, the output as well are dynamic and often not consistent. This does not say that `requests` does not apply to this problem. There are also some uses like, **IUAM** sites completely blocks `requests` library and your program is heavily written soley for `requests` then this might be for you.
+**Why not just scrape fully on selenium?** There are some use cases that where some applications rely on a `requests` library to scrape on websites, while selenium is sensible option to prevent javascript challenges. This library will try and bypass javascript challenges by using session cookies so you can access the site just as how you would with `requests`.
 
+**Is this just a requests wrapper?** No, it is simply an extension of `requests` library where it tries to simplify the process of bypassing cloudflare IUAM.
 
-
-**Is this just a requests wrapper?** not fully. I havent implemented the entire `requests` functions and will probably will not be adding until I have certain understanding on how they work. So I rely on people accessing the 'deep level' code that I have intentionally kept open incase there are some specific use cases
-
-for example you can directly access the `requests.Session` object directly in the `cfSession` object
+You can directly access the `requests.Session` object in the `cfSession.session` attribute 
 ```py
 from CFSession import cfSession
 

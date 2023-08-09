@@ -8,8 +8,9 @@ class CFException(Exception): #Parent class
     def __init__(self,message=None,response=None,request=None, *args, **kwargs):
         """There was an ambiguous exception that occurred while handling your
     request."""
-        super().__init__(message,*args, **kwargs)
         self.response = response
+        message = repr(response) if not message else message
+        super().__init__(message,*args, **kwargs)
 
 
 
