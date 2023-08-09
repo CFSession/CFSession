@@ -100,17 +100,20 @@ class CFBypass:
         self.driver.switch_to.window(window_name=self.driver.window_handles[0]) 
         self.WaitForElement(5)
         self.driver.close()
-        self.driver.switch_to.window(window_name=self.driver.window_handles[0]) 
+        self.driver.switch_to.window(window_name=self.driver.window_handles[0])
     
     def click_bypass(self):
         #https://stackoverflow.com/questions/76575298/how-to-click-on-verify-you-are-human-checkbox-challenge-by-cloudflare-using-se
         try:
+            self.driver.execute_script(f'window.open("{self.website}","_blank");')
             self.WaitForElement(5)
             WebDriverWait(self.driver, 5).until(EC.frame_to_be_available_and_switch_to_it((By.CSS_SELECTOR,"iframe[title='Widget containing a Cloudflare security challenge']")))
             WebDriverWait(self.driver, 5).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "label.ctp-checkbox-label"))).click()
             de_print("Clicked on verify")
         except TimeoutException:
             de_print("Click bypass Timeout")
+            self.driver.close()
+            self.driver.switch_to.window(window_name=self.driver.window_handles[0])
         except Exception:
             warn_print("An error occured on click_bypass")
 
