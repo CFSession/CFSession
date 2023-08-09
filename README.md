@@ -39,6 +39,11 @@ if __name__ == "__main__":
         res = session.get("https://nowsecure.nl")
         print(res.content)
 ```
+enable headless mode:
+
+```py
+session = CFSession.cfSession(headless=True)
+```
 
 ### How to choose chrome version:
 
