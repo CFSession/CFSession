@@ -259,9 +259,8 @@ class cfSessionHandler:
             cookie_verified = False
             cookies = json.load(open(self.directory.cookie_path(),"r"))
             for cookie in cookies:
-                expirey = cookie.get("expiry",False)
-                expiration = int(expirey)
-                if expirey:
+                expiration = int(cookie.get("expiry",False))
+                if expiration:
                     cookie_verified = True
             if not cookie_verified:    
                 return (True, "Token validity unconfirmed")
