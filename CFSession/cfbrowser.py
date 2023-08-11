@@ -260,8 +260,7 @@ class cfSessionHandler:
             cookies = json.load(open(self.directory.cookie_path(),"r"))
             for cookie in cookies:
                 expiration = int(cookie.get("expiry",False))
-                if expiration:
-                    cookie_verified = True
+                cookie_verified = bool(expiration)
             if not cookie_verified:    
                 return (True, "Token validity unconfirmed")
             # epoch_time = int(time.time())
