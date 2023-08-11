@@ -203,7 +203,7 @@ class SiteBrowserProcess:
             self.driver =  uc.Chrome(desired_capabilities=desired_cap,options=options,driver_executable_path=cdriver_path,*self.args, **self.kwargs)
         norm_print("Driver initialized")
         
-    def init_cf(self,CFobj: CFBypass = CFBypass):
+    def init_cf(self,CFobj: CFBypass = CFBypass) -> CFBypass:
         de_print(f"Bypass mode enabled: {self.bypass_mode}")
         return CFobj(self.driver, self.directory, timeout = self.p_timeout, bypass_mode = self.bypass_mode)
 
