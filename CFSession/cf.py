@@ -197,6 +197,8 @@ class SiteBrowserProcess:
         try:
             self.driver =  uc.Chrome(desired_capabilities=desired_cap,options=options,driver_executable_path=cdriver_path,headless=self.isheadless,*self.args, **self.kwargs)
         except RuntimeError: #Catch if the objects were reused
+            if self.ignore_defaults:
+                warn_print("Required_Defaults attributes had been reset, this is a mandatory reset to prevent Runtime error due to object duplicates.",0)
             self.defaults.reset_objects()
             options = self.defaults.options_default()
             desired_cap = self.defaults.desired_capabilites_default()
