@@ -233,6 +233,7 @@ class cfSession():
         return SiteBrowserProcess(site_requested,directory=directory,headless_mode=self.headless,*args,**kwargs)
     
     def close(self):
+        "Gracefully close a session and closes browser if it has opened."
         self.session.close()
         if self.cf_proccache:
             self.cf_proccache.close()
@@ -291,7 +292,7 @@ class cfSimulacrum(cfSession):
     def copen(self, site_requested, *aer, **res) -> SiteBrowserProcess: # returns SiteBrowserProcess
         self.site = site_requested
         self.cdriver = self._class_initialize(site_requested,directory=self.directory, bypass_mode=self.bypass_mode, *aer, **res)
-        self.cdriver._init_chromedriver_manual() 
+        self.cdriver.initialize_chromedriver()
         self.cdriver.driver.get(self.site)
         return self.cdriver
 
