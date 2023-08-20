@@ -34,4 +34,5 @@ setup(
     ],
     packages=['CFSession'],
     python_requires=">=3.6",
+    license="Apache-2.0"
 )

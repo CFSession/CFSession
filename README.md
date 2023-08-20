@@ -95,17 +95,18 @@ from CFSession import Required_defaults, cf, cfSimulacrum, cfDirectory
 from undetected_chromedriver import uc
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
+url = "https://nowsecure.nl"
+
 #Do ur stuff with the options and or DesiredCapabilities here.
 defaults = Required_defaults()
 defaults.options = uc.ChromeOptions()
 defaults.dcp = DesiredCapabilities().CHROME
-SBP = cf.SiteBrowserProcess("https://nowsecure.nl",directory=cfDirectory(),ignore_defaults=True,defaults=defaults) # Generate cf.SiteBrowserProcess 
 
 cfsim = cfSimulacrum()
 cfsim.bypass_mode = True #cfSimulacrum has bypass_mode disabled by default, set it on
-cfsim.cdriver = SBP
+cfsim.copen(url, defaults=defaults)
 cfsim.find() #Run bypass
-response = cfsim.get("https://nowsecure.nl")
+response = cfsim.get(url)
 ```
 
 ## Installation:
