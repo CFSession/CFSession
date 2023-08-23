@@ -58,6 +58,7 @@ class cfSession():
         self._setcookies_status = self.set_cookies()
         self.cf_proccache = None
         self.tries = tries
+        self.proxy = None
 
     def __enter__(self):
         return self
@@ -88,6 +89,19 @@ class cfSession():
         """
         self.url = url
         return self.request("POST", url, data=data, json=json, **kwargs)
+    
+    def head(self, url, **kwargs) -> requests.Response:
+        r"""Sends a HEAD request.
+
+        :param url: URL for the new :class:`Request` object.
+        :param \*\*kwargs: Optional arguments that ``request`` takes. If
+            `allow_redirects` is not provided, it will be set to `False` (as
+            opposed to the default :meth:`request` behavior).
+        :return: :class:`Response <Response>` object
+        :rtype: requests.Response
+        """
+        self.url = url
+        return self.request("HEAD", url, **kwargs)
 
     def put(self, url, data=None, **kwargs) -> requests.Response:
         r"""Sends a PUT request. Returns :class:`Response` object.
@@ -113,7 +127,7 @@ class cfSession():
         self.url = url
         return self.request("PATCH", url, data=data, **kwargs)
 
-    def delete(self, url, **kwargs) -> requests.Response:
+    def delete(self, url, **kwargs):
         r"""Sends a DELETE request.
         :param url: URL for the new :class:`Request` object.
         :param \*\*kwargs: Optional arguments that ``request`` takes.
@@ -123,7 +137,7 @@ class cfSession():
         self.url = url
         return self.request("DELETE", url, **kwargs)
 
-    def options(self, url, **kwargs) -> requests.Response:
+    def options(self, url, **kwargs):
         r"""Sends an OPTIONS request.
         :param url: URL for the new :class:`Request` object.
         :param \*\*kwargs: Optional arguments that ``request`` takes.
@@ -134,6 +148,7 @@ class cfSession():
         return self.request("OPTIONS", url, **kwargs)
 
     def reload_token(self,site_requested,reset=False):
+        "Loads cookie, if not found then start bypassing."
         cookieStatus =  self.cookieChecker.cookie_available()
         if not cookieStatus[0] or reset:
             self.cf_proccache = self._class_initialize(site_requested,directory=self.directory,*self.arg,**self.kwarg)
@@ -143,6 +158,7 @@ class cfSession():
             self.cf_proccache.close()
         
     def set_cookies(self):
+        "Assigns the cookies available on the cache"
         try:
             cookies = json.load(open(self.directory.cookie_path(),"r"))
             selenium_headers = json.load(open(self.directory.session_path(),"r"))
@@ -155,7 +171,13 @@ class cfSession():
         return True
     
     def set_agent(self, user_agent=cfConstant.USER_AGENT):
+        "Sets the user agent of the current session. (Overridden during bypass)"
         self.session.headers.update({"user-agent": user_agent})
+
+    def set_proxy(self, proxy: str):
+        "Sets the proxy of the current session. [user:pass@localhost:8080] (Will be also used during bypass)"
+        typeofproxy = ...
+        self.proxy = {typeofproxy: proxy}
 
     def _handle_equalfunc(self):
         if not self._setcookies_status:
@@ -163,6 +185,38 @@ class cfSession():
             self.set_cookies()
 
     def request(self,method,url,**kwargs) -> requests.Response:
+        """Handles bypass automation and returns a response
+
+            :param method: method for the new :class:`Request` object: ``GET``, ``OPTIONS``, ``HEAD``, ``POST``, ``PUT``, ``PATCH``, or ``DELETE``.
+            :param url: URL for the new :class:`Request` object.
+            :param params: (optional) Dictionary, list of tuples or bytes to send
+                in the query string for the :class:`Request`.
+            :param data: (optional) Dictionary, list of tuples, bytes, or file-like
+                object to send in the body of the :class:`Request`.
+            :param json: (optional) A JSON serializable Python object to send in the body of the :class:`Request`.
+            :param headers: (optional) Dictionary of HTTP Headers to send with the :class:`Request`.
+            :param cookies: (optional) Dict or CookieJar object to send with the :class:`Request`.
+            :param files: (optional) Dictionary of ``'name': file-like-objects`` (or ``{'name': file-tuple}``) for multipart encoding upload.
+                ``file-tuple`` can be a 2-tuple ``('filename', fileobj)``, 3-tuple ``('filename', fileobj, 'content_type')``
+                or a 4-tuple ``('filename', fileobj, 'content_type', custom_headers)``, where ``'content-type'`` is a string
+                defining the content type of the given file and ``custom_headers`` a dict-like object containing additional headers
+                to add for the file.
+            :param auth: (optional) Auth tuple to enable Basic/Digest/Custom HTTP Auth.
+            :param timeout: (optional) How many seconds to wait for the server to send data
+                before giving up, as a float, or a :ref:`(connect timeout, read
+                timeout) <timeouts>` tuple.
+            :type timeout: float or tuple
+            :param allow_redirects: (optional) Boolean. Enable/disable GET/OPTIONS/POST/PUT/PATCH/DELETE/HEAD redirection. Defaults to ``True``.
+            :type allow_redirects: bool
+            :param proxies: (optional) Dictionary mapping protocol to the URL of the proxy.
+            :param verify: (optional) Either a boolean, in which case it controls whether we verify
+                    the server's TLS certificate, or a string, in which case it must be a path
+                    to a CA bundle to use. Defaults to ``True``.
+            :param stream: (optional) if ``False``, the response content will be immediately downloaded.
+            :param cert: (optional) if String, path to ssl client cert file (.pem). If Tuple, ('cert', 'key') pair.
+            :return: :class:`Response <Response>` object
+            :rtype: requests.Response
+        """
         content = None
         for t in range(0,self.tries):
             try:
@@ -170,6 +224,8 @@ class cfSession():
                     content = self.session.get(url, **kwargs)
                 elif method == "POST":
                     content = self.session.post(url, **kwargs)
+                elif method == "HEAD":
+                    content = self.session.head(url, **kwargs)
                 elif method == "PATCH":
                     content = self.session.patch(url, **kwargs)
                 elif method == "PUT":
@@ -290,6 +346,7 @@ class cfSimulacrum(cfSession):
         self.bypass_mode = False
         
     def copen(self, site_requested, *aer, **res) -> SiteBrowserProcess: # returns SiteBrowserProcess
+        "Initializes the chromedriver and opens the browser"
         self.site = site_requested
         self.cdriver = self._class_initialize(site_requested,directory=self.directory, bypass_mode=self.bypass_mode, *aer, **res)
         self.cdriver.initialize_chromedriver()
@@ -297,10 +354,15 @@ class cfSimulacrum(cfSession):
         return self.cdriver
 
     def find(self) -> CFBypass: #returns CFBypass
+        "Initializes the bypass engine"
         self.cfinder = CFBypass(self.cdriver.driver, self.directory, bypass_mode=self.bypass_mode)
         return self.cfinder
 
     def search(self,target_title: Union[str, list] = None):
+        """If bypass engine has not been initialized then it will automatically create its own instance. 
+        What this does is search for the webpage's title and will keep it open if it is always matching. 
+        If the title has changed and no longer matching then it will close the browser and automatically collect the session cookies.
+        """
         if not self.cfinder:
             self.cfinder = CFBypass(self.cdriver.driver, self.directory)
         self.cfinder.TARGET_NAME = target_title if target_title != None else self.cfinder.TARGET_NAME
