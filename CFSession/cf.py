@@ -223,8 +223,12 @@ class SiteBrowserProcess:
             warn_print("Failed to minimize window.",level=1)
             de_print(e)
         return self.load_cf()
-        
 
     def start(self):
         return self.main()
-            
+    
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        self.driver.close()
