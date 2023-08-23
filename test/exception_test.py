@@ -6,7 +6,7 @@ import sys
 cf.DEBUG = True
 
 def main():
-    session = cfSession()
+    session = cfSession(version_main=114)
     res = session.get("https://nowsecure.nl/2332") #404 Notfound
     try:
         res.raise_for_status()
