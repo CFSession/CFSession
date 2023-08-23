@@ -101,6 +101,7 @@ class cfSession():
         :rtype: requests.Response
         """
         self.url = url
+        kwargs.setdefault("allow_redirects", False)
         return self.request("HEAD", url, **kwargs)
 
     def put(self, url, data=None, **kwargs):
@@ -145,9 +146,10 @@ class cfSession():
         :rtype: requests.Response
         """
         self.url = url
+        kwargs.setdefault("allow_redirects", True)
         return self.request("OPTIONS", url, **kwargs)
 
-    def reload_token(self,site_requested,reset=False):
+    def reload_token(self,site_requested: str,reset=False):
         "Loads cookie, if not found then start bypassing."
         cookieStatus =  self.cookieChecker.cookie_available()
         if not cookieStatus[0] or reset:
@@ -175,7 +177,9 @@ class cfSession():
         self.session.headers.update({"user-agent": user_agent})
 
     def set_proxy(self, proxy: str):
-        "Sets the proxy of the current session. [user:pass@localhost:8080] (Will be also used during bypass)"
+        """Sets the proxy of the current session. (Will be also used during bypass)
+        Format: 'user:pass@localhost:8080' 
+        """
         typeofproxy = ...
         self.proxy = {typeofproxy: proxy}
 
@@ -184,7 +188,22 @@ class cfSession():
             self.reload_token(self.url)
             self.set_cookies()
 
-    def request(self,method,url,**kwargs) -> requests.Response:
+    def request(self,method,url,
+        params=None,
+        data=None,
+        headers=None,
+        cookies=None,
+        files=None,
+        auth=None,
+        timeout=None,
+        allow_redirects=True,
+        proxies=None,
+        hooks=None,
+        stream=None,
+        verify=None,
+        cert=None,
+        json=None,
+    ) -> requests.Response:
         """Handles bypass automation and returns a response
 
             :param method: method for the new :class:`Request` object: ``GET``, ``OPTIONS``, ``HEAD``, ``POST``, ``PUT``, ``PATCH``, or ``DELETE``.
@@ -220,20 +239,22 @@ class cfSession():
         content = None
         for t in range(0,self.tries):
             try:
-                if method == "GET":
-                    content = self.session.get(url, **kwargs)
-                elif method == "POST":
-                    content = self.session.post(url, **kwargs)
-                elif method == "HEAD":
-                    content = self.session.head(url, **kwargs)
-                elif method == "PATCH":
-                    content = self.session.patch(url, **kwargs)
-                elif method == "PUT":
-                    content = self.session.put(url, **kwargs)
-                elif method == "DELETE":
-                    content = self.session.delete(url, **kwargs)
-                elif method == "OPTIONS":
-                    content = self.session.options(url, **kwargs)
+                content = self.session.request(method=method, url=url,
+                    params=params,
+                    data=data,
+                    headers=headers,
+                    cookies=cookies,
+                    files=files,
+                    auth=auth,
+                    timeout=timeout,
+                    allow_redirects=allow_redirects,
+                    proxies=proxies,
+                    hooks=hooks,
+                    stream=stream,
+                    verify=verify,
+                    cert=cert,
+                    json=json,
+                )   
                 content.raise_for_status()
                 return content
             except requests.exceptions.HTTPError as e:
@@ -275,12 +296,12 @@ class cfSession():
                 self.exception = CloudflareBlocked(response=caught_exception.response)
             self.exception = HTTPError(response=caught_exception.response)
         try:
-            content.raise_for_status = lambda: self._response_hook_raiseforstatus(content)
+            content.raise_for_status = lambda: self._response_hook_raiseforstatus()
         except AttributeError: #Indicates Response was not created, this usually means that the error is non-HTTP and must be raised immediately
             raise self.exception
         return content    
 
-    def _response_hook_raiseforstatus(self, objself: CFException):
+    def _response_hook_raiseforstatus(self):
         """Raises `CFException` if an error has occured"""
         if isinstance(self.exception,CFException):
                 raise self.exception
@@ -308,7 +329,7 @@ class cfSession():
 
 
 class cfSessionHandler:
-    def __init__(self, directory: cfDirectory = None) -> None:
+    def __init__(self, directory: cfDirectory = None):
         self.directory = directory
         
     def cookie_available(self):

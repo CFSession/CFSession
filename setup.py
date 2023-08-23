@@ -4,7 +4,7 @@ with open('README.md', 'rt') as readme:
 
 setup(
     name='CFSession',
-    version='1.3.0a0',
+    version='1.3.0a1',
     author='Kinuseka',
     author_email='realkingseeker1089@gmail.com',
     description='A Cloudflare IUAM session grabber',
@@ -33,6 +33,7 @@ setup(
         'undetected-chromedriver>=3.1.6,!=3.5.1'
     ],
     packages=['CFSession'],
+    package_data={"CFSession": ["py.typed","__init__.pyi","cfbrowser.pyi"]},
     python_requires=">=3.6",
     license="Apache-2.0"
 )
