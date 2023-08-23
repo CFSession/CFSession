@@ -66,7 +66,7 @@ class cfSession():
     def __exit__(self, *args):
         self.close()
 
-    def get(self,url,params=None, **kwargs) -> requests.Response:
+    def get(self,url,params=None, **kwargs):
         r"""Sends a GET request.
         :param url: URL for the new :class:`Request` object.
         :param params: (optional) Dictionary, list of tuples or bytes to send
@@ -78,7 +78,7 @@ class cfSession():
         self.url = url
         return self.request("GET", url, params=params, **kwargs)
     
-    def post(self,url,data=None, json=None,**kwargs) -> requests.Response:
+    def post(self,url,data=None, json=None,**kwargs):
         r"""Sends a POST request. Returns :class:`Response` object.
         :param url: URL for the new :class:`Request` object.
         :param data: (optional) Dictionary, list of tuples, bytes, or file-like
@@ -90,7 +90,7 @@ class cfSession():
         self.url = url
         return self.request("POST", url, data=data, json=json, **kwargs)
     
-    def head(self, url, **kwargs) -> requests.Response:
+    def head(self, url, **kwargs):
         r"""Sends a HEAD request.
 
         :param url: URL for the new :class:`Request` object.
@@ -103,7 +103,7 @@ class cfSession():
         self.url = url
         return self.request("HEAD", url, **kwargs)
 
-    def put(self, url, data=None, **kwargs) -> requests.Response:
+    def put(self, url, data=None, **kwargs):
         r"""Sends a PUT request. Returns :class:`Response` object.
         :param url: URL for the new :class:`Request` object.
         :param data: (optional) Dictionary, list of tuples, bytes, or file-like
@@ -114,7 +114,7 @@ class cfSession():
         self.url = url
         return self.request("PUT", url, data=data, **kwargs)
 
-    def patch(self, url,data=None, **kwargs) -> requests.Response:
+    def patch(self, url,data=None, **kwargs):
         r"""Sends a PATCH request.
         :param url: URL for the new :class:`Request` object.
         :param data: (optional) Dictionary, list of tuples, bytes, or file-like
