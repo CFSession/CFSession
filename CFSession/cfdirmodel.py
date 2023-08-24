@@ -12,7 +12,7 @@ class cfDirectory:
     def __init__(self, cache_path: str = DEFAULT, session_name = DEFAULT_NAME, chromedriver_path: str = None) -> None:
         """
         :param cache_path: Directory where the session cookies and other dumps will be stored.
-        :param file_name: Name of the session files Type: `Tuple` (cookie_filename, useragent_filename)
+        :param session_name: Name of the session files Type: `Tuple` (cookie_filename, useragent_filename)
         :param chromedriver_path: Path of the chromedriver
         """
         self.cache = cache_path
@@ -21,7 +21,7 @@ class cfDirectory:
         self.cookie_name = session_name[0]
         self.agent_name = session_name[1]
         self.chromedriver = chromedriver_path
-        
+
     def cookie_path(self) -> str:
         path = os.path.join(self.cache, self.cookie_name)
         return path
