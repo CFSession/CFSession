@@ -63,7 +63,7 @@ class CFBypass:
         self.TARGET_NAME = target
         self.driver = driver
         self.website = driver.current_url
-        self.directory = directory
+        self.directory: cfDirectory = directory
         self.timeout = timeout
         self.bypass_mode = bypass_mode
         self.children = []
