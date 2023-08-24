@@ -7,6 +7,7 @@ for the UC(undetected chromium) process
 
 import undetected_chromedriver as uc
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+import os
 
 class Required_defaults:
     """
@@ -51,3 +52,7 @@ class Required_defaults:
 class cfConstant:
     USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36'
     DEBUG_DUMMY = [{"domain": ".nowsecure.nl", "expiry": 1690714605, "httpOnly": True, "name": "cf_clearance", "path": "/", "sameSite": "None", "secure": True, "value": "IOt5_jFk89BojBTV0NWAPj8zh4xq_zSxxt.2scnbY.4-1659175005-0-150"}]
+    DEF_DIRECTORY = os.path.join(os.getcwd(),".browser")
+    DEF_COOKIE_NAME: str = "sess_cookies.json"
+    DEF_AGENT_NAME: str = "sess_agent.json"
+    DEF_DIRECTORY_NAME = (DEF_COOKIE_NAME, DEF_AGENT_NAME)
