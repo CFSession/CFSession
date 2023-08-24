@@ -33,7 +33,7 @@ setup(
         'undetected-chromedriver>=3.1.6,!=3.5.1'
     ],
     packages=['CFSession'],
-    package_data={"CFSession": ["py.typed","__init__.pyi","cfbrowser.pyi"]},
+    package_data={"CFSession": ["py.typed","__init__.pyi","cfbrowser.pyi","cfdirmodel.pyi"]},
     python_requires=">=3.6",
     license="Apache-2.0"
 )
