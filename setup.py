@@ -1,10 +1,16 @@
 from setuptools import setup
+import os
 with open('README.md', 'rt') as readme:
     long_description = readme.read()
 
+meta = {}
+absolute_path = os.path.abspath(os.path.dirname(__file__))
+with open(os.path.join(absolute_path, "CFSession", "__version__.py"), "r", encoding="utf-8") as f:
+    exec(f.read(), meta)
+
 setup(
     name='CFSession',
-    version='1.3.0a1',
+    version=meta["__version__"],
     author='Kinuseka',
     author_email='realkingseeker1089@gmail.com',
     description='A Cloudflare IUAM session grabber',
@@ -25,12 +31,13 @@ setup(
         'Operating System :: POSIX :: Linux',
         'Operating System :: MacOS',
         'Intended Audience :: Developers',
-        'Topic :: Internet',
+        'Topic :: Internet :: WWW/HTTP',
         'Typing :: Typed'
     ],
     install_requires=[
         'requests>=2.25.0',
-        'undetected-chromedriver>=3.1.6,!=3.5.1'
+        'undetected-chromedriver>=3.1.6,!=3.5.1',
+        "typing-extensions"
     ],
     packages=['CFSession'],
     package_data={"CFSession": ["py.typed","__init__.pyi","cfbrowser.pyi","cfdirmodel.pyi"]},
