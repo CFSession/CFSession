@@ -188,22 +188,7 @@ class cfSession():
             self.reload_token(self.url)
             self.set_cookies()
 
-    def request(self,method,url,
-        params=None,
-        data=None,
-        headers=None,
-        cookies=None,
-        files=None,
-        auth=None,
-        timeout=None,
-        allow_redirects=True,
-        proxies=None,
-        hooks=None,
-        stream=None,
-        verify=None,
-        cert=None,
-        json=None,
-    ) -> requests.Response:
+    def request(self,method,url,**kwargs) -> requests.Response:
         """Handles bypass automation and returns a response
 
             :param method: method for the new :class:`Request` object: ``GET``, ``OPTIONS``, ``HEAD``, ``POST``, ``PUT``, ``PATCH``, or ``DELETE``.
@@ -239,22 +224,7 @@ class cfSession():
         content = None
         for t in range(0,self.tries):
             try:
-                content = self.session.request(method=method, url=url,
-                    params=params,
-                    data=data,
-                    headers=headers,
-                    cookies=cookies,
-                    files=files,
-                    auth=auth,
-                    timeout=timeout,
-                    allow_redirects=allow_redirects,
-                    proxies=proxies,
-                    hooks=hooks,
-                    stream=stream,
-                    verify=verify,
-                    cert=cert,
-                    json=json,
-                )   
+                content = self.session.request(method=method, url=url,**kwargs)   
                 content.raise_for_status()
                 return content
             except requests.exceptions.HTTPError as e:
