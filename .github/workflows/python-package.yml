@@ -32,7 +32,7 @@ jobs:
     - name: Install chromium
       uses: browser-actions/setup-chrome@v1
       with:
-        chrome-version: 1135580
+        chrome-version: stable
     - name: Install package itself
       run: |
         ls -a
