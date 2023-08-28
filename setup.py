@@ -36,7 +36,7 @@ setup(
     ],
     install_requires=[
         'requests>=2.25.0',
-        'undetected-chromedriver>=3.1.6,!=3.5.1',
+        'undetected-chromedriver>=3.5.3,!=3.5.1',
         "typing-extensions"
     ],
     packages=['CFSession'],
