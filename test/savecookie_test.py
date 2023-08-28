@@ -4,7 +4,7 @@ from CFSession import cfDirectory
 import os
 
 if __name__ == "__main__":
-    session = cfSession(version_main=114)
+    session = cfSession()
     res = session.get("http://nowsecure.nl") #IUAM protected site
     cookies = cfCookieHandler("nowsecure.json") #Filename
     cookies.dump(session)
