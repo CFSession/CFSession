@@ -4,12 +4,14 @@
 !.gitignore
 !.github/*
 !CFSession
-!test
 !CFSession/*
+!test
 !test/*
+!stubs
+!stubs/*
+!stubs/CFSession/*
 !LICENSE
 !README.md
-!setup.cfg
-!setup.py
+!pyproject.toml
 !requirements.txt
 !tester.py
