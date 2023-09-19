@@ -11,6 +11,8 @@ import os
 
 class Required_defaults:
     """
+    ## As of v1.3.0 this class is deprecated and non functioning. It is now replaced by CFSession.cfmodels.Options
+
     This the class where you can modify "options" and "DesiredCapabilities" without affecting the default settings
 
     Basic Usage::
@@ -50,9 +52,12 @@ class Required_defaults:
         return self.dcp
 
 class cfConstant:
+    #Internal Constant
     USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36'
     DEBUG_DUMMY = [{"domain": ".nowsecure.nl", "expiry": 1690714605, "httpOnly": True, "name": "cf_clearance", "path": "/", "sameSite": "None", "secure": True, "value": "IOt5_jFk89BojBTV0NWAPj8zh4xq_zSxxt.2scnbY.4-1659175005-0-150"}]
+    #Defaults
     DEF_DIRECTORY = os.path.join(os.getcwd(),".browser")
     DEF_COOKIE_NAME: str = "sess_cookies.json"
     DEF_AGENT_NAME: str = "sess_agent.json"
     DEF_DIRECTORY_NAME = (DEF_COOKIE_NAME, DEF_AGENT_NAME)
+    DEF_CLOUDFLARE_TARGET = ["Just a moment...","Please Wait..."]
