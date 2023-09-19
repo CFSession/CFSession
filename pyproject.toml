@@ -1,0 +1,51 @@
+[build-system]
+requires = ["setuptools", "wheel"]  # PEP 508 specifications.
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.dynamic]
+version = {attr = "CFSession.__version__.__version__"}
+
+[tool.setuptools]
+packages = ['CFSession']
+
+[project]
+name = "CFSession"
+description = "A python based IUAM bypasser"
+authors = [{name = "Kinuseka", email = "support@kinuseka.us"}]
+readme = {file = 'README.md', content-type='text/markdown'}
+license = {file = 'LICENSE'}
+dynamic = ["version"]
+requires-python = ">=3.6"
+keywords = ["cloudflare", "cloudflare-bypass", "python", "selenium"]
+classifiers = [
+        'Development Status :: 4 - Beta',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
+        'License :: OSI Approved :: Apache Software License',
+        'Operating System :: OS Independent',
+        'Operating System :: Microsoft :: Windows',
+        'Operating System :: POSIX :: Linux',
+        'Operating System :: MacOS',
+        'Intended Audience :: Developers',
+        'Topic :: Internet :: WWW/HTTP',
+        'Typing :: Typed'
+]
+dependencies = [
+    "requests>=2.25.0",
+    "undetected-chromedriver>=3.5.3,!=3.5.1",
+    "typing-extensions"
+]
+
+[tool.setuptools.package-data]
+CFSession = ["./py.typed"]
+
+[project.optional-dependencies]
+typed = ["mypy"]
+
+[tool.mypy]
+mypy_path = "$MYPY_CONFIG_FILE_DIR/stubs"
+
