@@ -303,12 +303,13 @@ class cfSession():
 class cfSessionHandler:
     def __init__(self, directory: cfDirectory = None):
         self.directory = directory
-        self.cookies = json.load(open(self.directory.cookie_path(),"r"))
         self.clearance_name = "cf_clearance"
-        
+        self.cookies = []
+
     def cookie_available(self):
         "Checks for availability of the cf_clearance cookie stored on cache."
         if os.path.exists(self.directory.cookie_path()):
+            self.cookies = json.load(open(self.directory.cookie_path(),"r"))
             cookie_verified = bool(self.get_cookie_expiry())
             if not cookie_verified:  # If it returns 0 then assume it is not found/invalid so we simply pass this
                 return (True, "Token validity unconfirmed")
