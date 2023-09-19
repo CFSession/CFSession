@@ -230,6 +230,7 @@ class cfSession():
                 content.raise_for_status()
                 return content
             except requests.exceptions.HTTPError as e:
+                #Only HTTPERROR should we catch e.response
                 http_code = e.response.status_code
                 http_content = e.response.content
                 caught_exception = e
@@ -248,16 +249,16 @@ class cfSession():
                 continue
             except requests.exceptions.ConnectionError as e:
                 caught_exception = e
-                self.exception = NetworkError(response=e.response)
+                self.exception = NetworkError(response=e)
                 break
             except requests.exceptions.URLRequired as e:
-                self.exception = URLRequired(response=e.response)
+                self.exception = URLRequired(response=e)
                 break
             except requests.exceptions.TooManyRedirects as e:
-                self.exception = TooManyRedirects(response=e.response)
+                self.exception = TooManyRedirects(response=e)
                 break
             except requests.exceptions.Timeout as e:
-                self.exception = Timeout(response=e.response)
+                self.exception = Timeout(response=e)
                 break
             except requests.exceptions.RequestException as e: #When an arbitrary error occurs
                 self.exception = CFException(message=repr(e))
@@ -279,7 +280,7 @@ class cfSession():
                 raise self.exception
 
     def _class_initialize(self,site_requested,directory,*args,**kwargs):
-        return SiteBrowserProcess(site_requested,directory=directory,headless_mode=self.headless,*args,**kwargs)
+        return SiteBrowserProcess(site_requested,directory=directory,Options=self.userOptions,headless_mode=self.headless,*args,**kwargs)
     
     def close(self):
         "Gracefully close a session and closes browser if it has opened."
