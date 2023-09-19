@@ -305,12 +305,12 @@ class cfSessionHandler:
     def __init__(self, directory: cfDirectory = None):
         self.directory = directory
         self.clearance_name = "cf_clearance"
-        self.cookies = []
+        self.cookies = self.get_cookie_json()
 
     def cookie_available(self):
         "Checks for availability of the cf_clearance cookie stored on cache."
         if os.path.exists(self.directory.cookie_path()):
-            self.cookies = json.load(open(self.directory.cookie_path(),"r"))
+            
             cookie_verified = bool(self.get_cookie_expiry())
             if not cookie_verified:  # If it returns 0 then assume it is not found/invalid so we simply pass this
                 return (True, "Token validity unconfirmed")
@@ -338,6 +338,9 @@ class cfSessionHandler:
 
     def get_clearance(self) -> Union[dict, None]:
         "Returns a dict containing values for the cf_clearance cookie"
+        if not self.cookies:
+            #get cookies ones
+            self.cookies = self.get_cookie_json()
         return next((item for item in self.cookies if item["name"] == self.clearance_name), None)
 
     def delete_cookies(self):
@@ -352,7 +355,13 @@ class cfSessionHandler:
         dt = datetime.datetime.now(timezone.utc)
         utc_time = dt.replace(tzinfo=timezone.utc).replace(microsecond=0)
         return int(utc_time.timestamp())
-    
+
+    def get_cookie_json(self):
+        try:
+            return json.load(open(self.directory.cookie_path(),"r"))
+        except FileNotFoundError:
+            return []
+        
 class cfSimulacrum(cfSession):
     def __init__(self, *aer, **res):
         super().__init__(*aer,**res)
