@@ -5,7 +5,7 @@ This module contains the wrapper for Requests
 """
 from .cfexception import CFException, CloudflareBlocked, HTTPError, NetworkError, NotFound, URLRequired, TooManyRedirects, Timeout, ConnectTimeout, ReadTimeout
 from .cf import CFBypass, SiteBrowserProcess
-from .cfdirmodel import cfDirectory    
+from .cfmodels import cfDirectory, Options
 from .cfdefaults import cfConstant
 from datetime import timezone
 import requests
@@ -48,17 +48,19 @@ class cfSession():
 
     
 
-    def __init__(self,directory: cfDirectory = cfDirectory(), headless_mode: bool = False, tries: int = 3,*cfarg, **cfkwarg):
+    def __init__(self,directory: cfDirectory = cfDirectory(), Options: Options() = Options(), headless_mode: bool = False, tries: int = 3,*cfarg, **cfkwarg):
         self.session = requests.Session()
         self.arg = cfarg
         self.kwarg = cfkwarg
         self.headless = headless_mode
         self.directory = directory
-        self.cookieChecker = cfSessionHandler(self.directory)
+        self.userOptions = Options
+        self.internalHandler = cfSessionHandler(self.directory)
         self._setcookies_status = self.set_cookies()
         self.cf_proccache = None
         self.tries = tries
         self.proxy = None
+        self.url = None
 
     def __enter__(self):
         return self
@@ -151,11 +153,11 @@ class cfSession():
 
     def reload_token(self,site_requested: str,reset=False):
         "Loads cookie, if not found then start bypassing."
-        cookieStatus =  self.cookieChecker.cookie_available()
+        cookieStatus =  self.internalHandler.cookie_available()
         if not cookieStatus[0] or reset:
             self.cf_proccache = self._class_initialize(site_requested,directory=self.directory,*self.arg,**self.kwarg)
             if reset:
-                self.cookieChecker.delete_cookies()
+                self.internalHandler.delete_cookies()
             self.cf_proccache.start()
             self.cf_proccache.close()
         
@@ -287,7 +289,7 @@ class cfSession():
             del self.cf_proccache
 
     def __repr__(self):
-        return "<cfSession Object>"
+        return "<cfSession Object, Currently Browsing: %s>" % self.url
     
     def __getstate__(self):
         state = {attr: getattr(self, attr, None) for attr in self.__attrs__}
@@ -301,33 +303,54 @@ class cfSession():
 class cfSessionHandler:
     def __init__(self, directory: cfDirectory = None):
         self.directory = directory
+        self.cookies = json.load(open(self.directory.cookie_path(),"r"))
+        self.clearance_name = "cf_clearance"
         
     def cookie_available(self):
+        "Checks for availability of the cf_clearance cookie stored on cache."
         if os.path.exists(self.directory.cookie_path()):
-            cookie_verified = False
-            cookies = json.load(open(self.directory.cookie_path(),"r"))
-            for cookie in cookies:
-                expiration = int(cookie.get("expiry",False))
-                cookie_verified = bool(expiration)
-            if not cookie_verified:    
+            cookie_verified = bool(self.get_cookie_expiry())
+            if not cookie_verified:  # If it returns 0 then assume it is not found/invalid so we simply pass this
                 return (True, "Token validity unconfirmed")
-            # epoch_time = int(time.time())
-            dt = datetime.datetime.now(timezone.utc)
-            utc_time = dt.replace(tzinfo=timezone.utc).replace(microsecond=0)
-            epoch_time = int(utc_time.timestamp())
-            if epoch_time >= expiration:
+            if self.cookie_check_expire():
                 return (False, "Token has expired")      
             if not os.path.exists(self.directory.session_path()):
                 return (False, "Header is not found")
             return (True, "Available")
         return (False, "No cookie found")
     
+    def cookie_check_expire(self):
+        "Returns a bool whether had the cookie already expired or still valid"
+        epoch_time = self.get_epoch_today()
+        expiration = self.get_cookie_expiry()
+        return epoch_time >= expiration
+                 
+    def get_cookie_expiry(self) -> Union[str, int]:
+        "Returns when a cf_clearance cookie expires, represented in EPOCH, 0 will be represented as unknown by default"
+        clearance_dict = self.get_clearance()
+        try:
+            return int(clearance_dict.get("expiry", 0)) #returns zero if it cannot find the expiry value
+        except TypeError:
+            #Guard against invalid conversions
+            return 0
+
+    def get_clearance(self) -> Union[dict, None]:
+        "Returns a dict containing values for the cf_clearance cookie"
+        return next((item for item in self.cookies if item["name"] == self.clearance_name), None)
+
     def delete_cookies(self):
+        "Deletes cookie, returns 0 if successful, returns 1 if the file was not deleted/found"
         try:
             os.remove(self.directory.cookie_path())
+            return 0
         except OSError:
-            pass
+            return 1
 
+    def get_epoch_today(self):
+        dt = datetime.datetime.now(timezone.utc)
+        utc_time = dt.replace(tzinfo=timezone.utc).replace(microsecond=0)
+        return int(utc_time.timestamp())
+    
 class cfSimulacrum(cfSession):
     def __init__(self, *aer, **res):
         super().__init__(*aer,**res)
@@ -358,3 +381,4 @@ class cfSimulacrum(cfSession):
             self.cfinder = CFBypass(self.cdriver.driver, self.directory)
         self.cfinder.TARGET_NAME = target_title if target_title != None else self.cfinder.TARGET_NAME
         self.cfinder.start()
+#
