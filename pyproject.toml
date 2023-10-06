@@ -37,15 +37,11 @@ classifiers = [
 dependencies = [
     "requests>=2.25.0",
     "undetected-chromedriver>=3.5.3,!=3.5.1",
+    "loguru==0.7.2",
     "typing-extensions"
 ]
 
 [tool.setuptools.package-data]
-CFSession = ["./py.typed"]
+CFSession = ["py.typed", "*.pyi"]
 
-[project.optional-dependencies]
-typed = ["mypy"]
-
-[tool.mypy]
-mypy_path = "$MYPY_CONFIG_FILE_DIR/stubs"
 
