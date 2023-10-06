@@ -33,7 +33,10 @@ class cfSession():
     
     Parameters:
         - directory (cfDirectory, optional): An instance of cfDirectory representing the directory to use. 
-                If not provided, a new cfDirectory instance will be created.
+                If not provided, a default cfDirectory instance will be created.
+        
+        - options (Options, optional): An Options instance, containing sets of configuration and behavior cfSession will use.
+                If not provided, a default Options instance will be created.
 
         - headless_mode (bool, optional): Whether to run in headless mode (without a graphical user interface). 
             Default is False.
@@ -48,19 +51,21 @@ class cfSession():
 
     
 
-    def __init__(self,directory: cfDirectory = cfDirectory(), Options: Options() = Options(), headless_mode: bool = False, tries: int = 3,*cfarg, **cfkwarg):
+    def __init__(self,directory: cfDirectory = cfDirectory(), options: Options = Options(), headless_mode: bool = False, tries: int = 3,*cfarg, **cfkwarg):
         self.session = requests.Session()
         self.arg = cfarg
         self.kwarg = cfkwarg
         self.headless = headless_mode
         self.directory = directory
-        self.userOptions = Options
+        self.userOptions = options
         self.internalHandler = cfSessionHandler(self.directory)
         self._setcookies_status = self.set_cookies()
         self.cf_proccache = None
         self.tries = tries
-        self.proxy = None
         self.url = None
+        proxy = self.userOptions.proxy
+        if proxy:
+            self.set_proxy(proxy)
 
     def __enter__(self):
         return self
@@ -179,11 +184,8 @@ class cfSession():
         self.session.headers.update({"user-agent": user_agent})
 
     def set_proxy(self, proxy: str):
-        """Sets the proxy of the current session. (Will be also used during bypass)
-        Format: 'user:pass@localhost:8080' 
-        """
-        typeofproxy = ...
-        self.proxy = {typeofproxy: proxy}
+        "Sets the proxy of the current session."
+        self.session.proxies.update(proxy)
 
     def _handle_equalfunc(self):
         if not self._setcookies_status:
@@ -340,7 +342,7 @@ class cfSessionHandler:
         if not self.cookies:
             #get cookies ones
             self.cookies = self.get_cookie_json()
-        return next((item for item in self.cookies if item["name"] == self.clearance_name), None)
+        return next((item for item in self.cookies if item["name"] == self.clearance_name), {})
 
     def delete_cookies(self):
         "Deletes cookie, returns 0 if successful, returns 1 if the file was not deleted/found"
