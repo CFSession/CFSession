@@ -17,4 +17,10 @@ from .cfexception import (URLRequired,
                         NotFound
                         )
 
+import sys
+from loguru import logger
+logger.remove()
+log = logger.bind(name="CFSession")
+log.add(sys.stdout, colorize=True, format="<green>{time}</green> <level>{message}</level>")
+
 from .__version__ import __version__

@@ -22,6 +22,8 @@ import time
 import sys
 import json
 import threading
+from loguru import logger
+_de_log = logger.bind(name="CFSession")
 
 #Not a constant. CAPITAL for more readable syntax
 #If constant is ever declared we will use CONST_VARIABLE_NAME
@@ -33,23 +35,23 @@ DUMMY = False
 def de_print(text: str):
     if DEBUG:
         try:
-            print(text)
+            _de_log.debug(text)
         except UnicodeEncodeError:
-            print("Uni Err, ascii md")
-            print(text.encode('ascii', 'ignore'))
+            _de_log.error("Uni Err, ascii md")
+            _de_log.debug(text.encode('ascii', 'ignore'))
         except Exception as e:
-            print("[warn] Error occured on a debugger de", e)
+            _de_log.exception("[warn] Error occured on a debugger de", e)
     
     
 def norm_print(text: str):
     if STDOUT or DEBUG:
         try:
-            print(text)
+            _de_log.info(text)
         except UnicodeEncodeError:
-            print("Uni Err, ascii md")
-            print(text.encode('ascii', 'ignore'))
+            _de_log.error("Uni Err, ascii md")
+            _de_log.info(text.encode('ascii', 'ignore'))
         except Exception as e:
-            print("[warn] Error occured on a debugger norm", e)
+            _de_log.exception("[warn] Error occured on a debugger norm", e)
 
 def warn_print(text, level: int = 2): # 0-Important, 1-If possible, 2-Unimportant (debug purposes)
     acceptable = STDOUT + DEBUG
@@ -182,10 +184,11 @@ class SiteBrowserProcess:
     def close(self):
         "Quits driver gracefully"
         try:
-            self.driver.quit()
+            #close remaining windows
+            self.driver._ensure_close(self.driver)
             self.proc_done = True
         except AttributeError:
-            raise AttributeError("Driver has not initialized")
+            de_print("Close attempt but self.driver is not found")
 
     def create_directory(self):
         Path(self.destination).mkdir(parents=True, exist_ok=True)
