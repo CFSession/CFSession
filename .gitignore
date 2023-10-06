@@ -7,9 +7,6 @@
 !CFSession/*
 !test
 !test/*
-!stubs
-!stubs/*
-!stubs/CFSession/*
 !LICENSE
 !README.md
 !pyproject.toml
