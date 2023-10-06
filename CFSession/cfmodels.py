@@ -9,6 +9,7 @@ import os
 from .cfdefaults import cfConstant
 import undetected_chromedriver as uc
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+from selenium.webdriver.common.proxy import Proxy
 
 DEFAULT = cfConstant.DEF_DIRECTORY
 DEFAULT_NAME = cfConstant.DEF_DIRECTORY_NAME
@@ -56,7 +57,7 @@ class Options:
     Handles the options, default settings and configuration that will be used on both uc.Chrome() and cfSession
     """
     def __init__(self,
-        proxy: list = None,
+        proxy: dict = {},
         headless: bool = False,
         ignore_defaults: bool = False,
         chrome_options: uc.ChromeOptions = None,
@@ -64,7 +65,12 @@ class Options:
     ):
         """Will serve as the configuration options for both the CFSession and the WebDriver Chrome.
         Args:
-            proxy (list, optional): A list of proxy server settings. Default is None.
+            proxy (list, optional):\
+                proxy server setting. Example:\
+                `{\
+                    "https": "https://ip:port"\
+                }`
+                Supported protocols: http, https, ftp, socks5 `http: 'socks5://ip:port'`
             headless (bool, optional): Whether to run the browser in headless mode (no GUI). Default is False.
             ignore_defaults (bool, optional): Whether to ignore default settings. Default is False.
             chrome_options (uc.ChromeOptions, optional): Custom Chrome options to configure the browser.
@@ -82,7 +88,7 @@ class Options:
         self.desired_capabilities = desired_capabilities if desired_capabilities else self.get_default_dcp()
 
     def reset_dcp(self, defaults = True):
-        """Reset dcp options to be reused again
+        """Reset `desired_capabilities` argument to be reused again
            :param defaults: If true, resets it to default (default: True)
         """
         if defaults:
@@ -91,29 +97,39 @@ class Options:
         #I added this method just for future use cases
 
     def reset_chromeoptions(self, defaults = True):
-        """Reset chromeoptions to default
+        """Reset `chrome_options` argument to be reused again
            :param defaults: If true, resets it to default (default: True)
         """
         if defaults:
             self.chrome_options = self.get_default_chromeoptions()
         else:
-            chrome_old = self.chrome_options.to_capabilities()
-            print(chrome_old)
-
+            chrome_old_args = self.chrome_options.arguments
+            self.chrome_options = uc.ChromeOptions()
+            self.chrome_options._arguments = chrome_old_args
+            
     def get_default_dcp(self):
         "Sets the default options for desired_capabilities and returns it"
-        desired_capabilities = DesiredCapabilities().CHROME
+        desired_capabilities = DesiredCapabilities().CHROME.copy()
         desired_capabilities["pageLoadStrategy"] = "eager"
         return desired_capabilities
     
     def get_default_chromeoptions(self):
         "Sets the default options for chromeoptions and returns it"
-        try:
-            chrome_options = uc.ChromeOptions()
-            chrome_options.use_chromium=True
-            chrome_options.add_argument("--disable-renderer-backgrounding")
-            chrome_options.add_argument("--disable-backgrounding-occluded-windows")
-            chrome_options.add_argument("--disable-popup-blocking")
-        except AttributeError:
-            return self.get_default_chromeoptions()
+        chrome_options = uc.ChromeOptions()
+        chrome_options.add_argument("--disable-renderer-backgrounding")
+        chrome_options.add_argument("--disable-backgrounding-occluded-windows")
+        chrome_options.add_argument("--disable-popup-blocking")
+        chrome_options.no_sandbox = False
+        if self.proxy:
+            proxy_http = self.proxy.get('http', None) or self.proxy.get('https', None) or self.proxy.get('ftp', None)
+            proxy = Proxy()
+            if self.proxy.get('http'):
+                proxy.http_proxy = proxy_http
+            elif self.proxy.get('https'):
+                proxy.ssl_proxy = proxy_http
+            elif self.proxy.get('ftp'):
+                proxy.ftp_proxy = proxy_http
+            else:
+                proxy.auto_detect = proxy_http
+            chrome_options.proxy = proxy
         return chrome_options
