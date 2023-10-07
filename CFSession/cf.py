@@ -214,7 +214,7 @@ class SiteBrowserProcess:
                 self.userOptions.reset_chromeoptions()
             options = self.userOptions.chrome_options
             desired_cap = self.userOptions.desired_capabilities
-            self.driver =  uc.Chrome(desired_capabilities=desired_cap,options=options,driver_executable_path=cdriver_path,*self.args, **self.kwargs)
+            self.driver =  uc.Chrome(desired_capabilities=desired_cap,options=options,driver_executable_path=cdriver_path,headless=self.isheadless,*self.args, **self.kwargs)
         norm_print("Driver initialized")
         
     def init_cf(self,CFobj: CFBypass = CFBypass) -> CFBypass:

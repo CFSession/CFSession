@@ -119,6 +119,8 @@ class Options:
         chrome_options.add_argument("--disable-renderer-backgrounding")
         chrome_options.add_argument("--disable-backgrounding-occluded-windows")
         chrome_options.add_argument("--disable-popup-blocking")
+        if self.headless:
+            chrome_options.add_argument('--headless')
         chrome_options.no_sandbox = False
         if self.proxy:
             proxy_http = self.proxy.get('http', None) or self.proxy.get('https', None) or self.proxy.get('ftp', None)
