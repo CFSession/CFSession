@@ -185,7 +185,7 @@ class SiteBrowserProcess:
         "Quits driver gracefully"
         try:
             #close remaining windows
-            self.driver._ensure_close(self.driver)
+            self.driver.quit()
             self.proc_done = True
         except AttributeError:
             de_print("Close attempt but self.driver is not found")
