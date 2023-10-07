@@ -315,7 +315,7 @@ class cfSessionHandler:
             cookie_verified = bool(self.get_cookie_expiry())
             if not cookie_verified:  # If it returns 0 then assume it is not found/invalid so we simply pass this
                 return (True, "Token validity unconfirmed")
-            if self.cookie_check_expire():
+            if not self.cookie_check_expire():
                 return (False, "Token has expired")      
             if not os.path.exists(self.directory.session_path()):
                 return (False, "Header is not found")
