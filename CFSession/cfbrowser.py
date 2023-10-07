@@ -326,7 +326,7 @@ class cfSessionHandler:
         "Returns a bool whether had the cookie already expired or still valid"
         epoch_time = self.get_epoch_today()
         expiration = self.get_cookie_expiry()
-        return epoch_time >= expiration
+        return epoch_time <= expiration
                  
     def get_cookie_expiry(self) -> Union[str, int]:
         "Returns when a cf_clearance cookie expires, represented in EPOCH, 0 will be represented as unknown by default"

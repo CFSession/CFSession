@@ -34,6 +34,8 @@ classifiers = [
         'Topic :: Internet :: WWW/HTTP',
         'Typing :: Typed'
 ]
+
+
 dependencies = [
     "requests>=2.25.0",
     "undetected-chromedriver>=3.5.3,!=3.5.1",
@@ -41,6 +43,9 @@ dependencies = [
     "selenium<4.13.0",
     "typing-extensions"
 ]
+
+[project.urls]
+homepage = "https://github.com/CFSession/CFSession"
 
 [tool.setuptools.package-data]
 CFSession = ["py.typed", "*.pyi"]
