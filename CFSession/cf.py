@@ -1,3 +1,8 @@
+"""
+CFSession.cf
+~~~~~~~~~~~~~
+This module contains the internal operations for controlling the behavior of the chromedriver
+"""
 #UC
 import undetected_chromedriver as uc
 #Sel
@@ -9,7 +14,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
 #Modules
-from .cfdirmodel import cfDirectory
+from .cfmodels import cfDirectory, Options
 from .cfdefaults import Required_defaults, cfConstant
 from pathlib import Path
 import typing
@@ -17,6 +22,8 @@ import time
 import sys
 import json
 import threading
+from loguru import logger
+_de_log = logger.bind(name="CFSession")
 
 #Not a constant. CAPITAL for more readable syntax
 #If constant is ever declared we will use CONST_VARIABLE_NAME
@@ -28,23 +35,23 @@ DUMMY = False
 def de_print(text: str):
     if DEBUG:
         try:
-            print(text)
+            _de_log.debug(text)
         except UnicodeEncodeError:
-            print("Uni Err, ascii md")
-            print(text.encode('ascii', 'ignore'))
+            _de_log.error("Uni Err, ascii md")
+            _de_log.debug(text.encode('ascii', 'ignore'))
         except Exception as e:
-            print("[warn] Error occured on a debugger de", e)
+            _de_log.exception("[warn] Error occured on a debugger de", e)
     
     
 def norm_print(text: str):
     if STDOUT or DEBUG:
         try:
-            print(text)
+            _de_log.info(text)
         except UnicodeEncodeError:
-            print("Uni Err, ascii md")
-            print(text.encode('ascii', 'ignore'))
+            _de_log.error("Uni Err, ascii md")
+            _de_log.info(text.encode('ascii', 'ignore'))
         except Exception as e:
-            print("[warn] Error occured on a debugger norm", e)
+            _de_log.exception("[warn] Error occured on a debugger norm", e)
 
 def warn_print(text, level: int = 2): # 0-Important, 1-If possible, 2-Unimportant (debug purposes)
     acceptable = STDOUT + DEBUG
@@ -59,11 +66,11 @@ def warn_print(text, level: int = 2): # 0-Important, 1-If possible, 2-Unimportan
         print(f"[WARN] {text}")
 
 class CFBypass:
-    def __init__(self, driver: uc.Chrome, directory, target = ["Just a moment...","Please Wait..."], timeout: int = 40, bypass_mode: bool = True) -> None:
+    def __init__(self, driver: uc.Chrome, directory, target = cfConstant.DEF_CLOUDFLARE_TARGET, timeout: int = 40, bypass_mode: bool = True) -> None:
         self.TARGET_NAME = target
         self.driver = driver
         self.website = driver.current_url
-        self.directory = directory
+        self.directory: cfDirectory = directory
         self.timeout = timeout
         self.bypass_mode = bypass_mode
         self.children = []
@@ -86,13 +93,13 @@ class CFBypass:
                 time.sleep(1)
                 attempt += 1
 
-    def WaitForElement(self, i):
-        WebDriverWait(self.driver, 10).until(
+    def WaitForElement(self, time_to_sleep, time_to_wait = 10):
+        WebDriverWait(self.driver, time_to_wait).until(
             EC.visibility_of(
             self.find_element(
             (By.TAG_NAME, 'body'),
         )))
-        time.sleep(i)
+        time.sleep(time_to_sleep)
 
     def init_bypass(self):
         self.driver.execute_script(f'window.open("{self.website}","_blank");')
@@ -106,9 +113,9 @@ class CFBypass:
         #https://stackoverflow.com/questions/76575298/how-to-click-on-verify-you-are-human-checkbox-challenge-by-cloudflare-using-se
         try:
             self.driver.execute_script(f'window.open("{self.website}","_blank");')
-            self.WaitForElement(5)
-            WebDriverWait(self.driver, 5).until(EC.frame_to_be_available_and_switch_to_it((By.CSS_SELECTOR,"iframe[title='Widget containing a Cloudflare security challenge']")))
-            WebDriverWait(self.driver, 5).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "label.ctp-checkbox-label"))).click()
+            self.WaitForElement(2)
+            WebDriverWait(self.driver, 3).until(EC.frame_to_be_available_and_switch_to_it((By.CSS_SELECTOR,"iframe[title='Widget containing a Cloudflare security challenge']")))
+            WebDriverWait(self.driver, 3).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "label.ctp-checkbox-label"))).click()
             de_print("Clicked on verify")
         except TimeoutException:
             de_print("Click bypass Timeout")
@@ -159,11 +166,10 @@ class CFBypass:
             child.join()
 
 class SiteBrowserProcess:
-    def __init__(self, destination: str, directory: cfDirectory, headless_mode: bool = False, ignore_defaults: bool = False, defaults: typing.Union[Required_defaults, bool] = Required_defaults(), process_timeout: int = 10, bypass_mode: bool = True, *args, **kwargs) -> None:
+    def __init__(self, destination: str, directory: cfDirectory, Options: Options, headless_mode: bool = False, process_timeout: int = 10, bypass_mode: bool = True, *args, **kwargs) -> None:
         self.args = args
         self.kwargs = kwargs
-        self.defaults = defaults
-        self.ignore_defaults = ignore_defaults
+        self.ignore_defaults = Options.ignore_defaults
         self.destination = destination
         self.directory = directory
         self.process_done = False
@@ -172,14 +178,17 @@ class SiteBrowserProcess:
         self.exception = None
         self.has_started = False
         self.p_timeout = process_timeout
+        self.userOptions = Options
         Path(self.directory.cache_path()).mkdir(parents=True, exist_ok=True) 
 
     def close(self):
+        "Quits driver gracefully"
         try:
+            #close remaining windows
             self.driver.quit()
             self.proc_done = True
         except AttributeError:
-            raise AttributeError("Driver has not initialized")
+            de_print("Close attempt but self.driver is not found")
 
     def create_directory(self):
         Path(self.destination).mkdir(parents=True, exist_ok=True)
@@ -188,19 +197,24 @@ class SiteBrowserProcess:
         self.driver = uc.Chrome(*self.args, **self.kwargs)
 
     def initialize_chromedriver(self):
-        if self.ignore_defaults and not self.defaults:
-            warn_print("You are overriding default arguments without cfdefaults, these may be important to work properly.\nIt is recommended to use 'CFSession.cfdefaults.RequiredDefaults' to modify changes",1)
-            return self._init_chromedriver_manual()
-        options = self.defaults.options_default()
-        desired_cap = self.defaults.desired_capabilites_default()
+        options = self.userOptions.chrome_options
+        desired_cap = self.userOptions.desired_capabilities
         cdriver_path = self.directory.chromedriver_path() #the function will return None(default), or a str path
         try:
             self.driver =  uc.Chrome(desired_capabilities=desired_cap,options=options,driver_executable_path=cdriver_path,headless=self.isheadless,*self.args, **self.kwargs)
         except RuntimeError: #Catch if the objects were reused
-            self.defaults.reset_objects()
-            options = self.defaults.options_default()
-            desired_cap = self.defaults.desired_capabilites_default()
-            self.driver =  uc.Chrome(desired_capabilities=desired_cap,options=options,driver_executable_path=cdriver_path,*self.args, **self.kwargs)
+            if self.ignore_defaults:
+                #Reset but keep the values
+                self.userOptions.reset_dcp(defaults=False)
+                self.userOptions.reset_chromeoptions(defaults=False)
+                warn_print("userOptions for dcp and chromeoptions is reset but kept the attributes",0)
+            else:
+                #Reset to default values
+                self.userOptions.reset_dcp()
+                self.userOptions.reset_chromeoptions()
+            options = self.userOptions.chrome_options
+            desired_cap = self.userOptions.desired_capabilities
+            self.driver =  uc.Chrome(desired_capabilities=desired_cap,options=options,driver_executable_path=cdriver_path,headless=self.isheadless,*self.args, **self.kwargs)
         norm_print("Driver initialized")
         
     def init_cf(self,CFobj: CFBypass = CFBypass) -> CFBypass:
@@ -221,8 +235,12 @@ class SiteBrowserProcess:
             warn_print("Failed to minimize window.",level=1)
             de_print(e)
         return self.load_cf()
-        
 
     def start(self):
         return self.main()
-            
+    
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        self.close()

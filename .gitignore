@@ -2,14 +2,13 @@
 *
 #Then files we need to follow will be listed here
 !.gitignore
-!.github/
+!.github/*
 !CFSession
-!test
 !CFSession/*
+!test
 !test/*
 !LICENSE
 !README.md
-!setup.cfg
-!setup.py
+!pyproject.toml
 !requirements.txt
 !tester.py
