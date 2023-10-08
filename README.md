@@ -57,56 +57,15 @@ if __name__ == "__main__":
 You can also use more options from `uc.Chrome()` and pass it from there 
 
 ### How to modify chrome options:
-
-CFSession has `CFSession.Required_defaults()` This is a class which you can use to modify `options` and `DesiredCapabilities`, the default options are pre-configured to work with bypass capabilities and other features we incorporated so we do not recommend modifying them. (Unless you know what you are doing)
+V1.3.0 now supports a much more easier way of modifying chromeoptions
 ```py
-from CFSession import Required_defaults, cf
-from undetected_chromedriver import uc
-from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+from CFSession import Options, cfSession
+import undetected_chromedriver as uc
 
-defaults = Required_defaults()
-defaults.options = uc.ChromeOptions()
-defaults.dcp = DesiredCapabilities().CHROME
-SBP = cf.SiteBrowserProcess(ignore_defaults=True,defaults=defaults) # Generate cf.SiteBrowserProcess 
-```
+options = Options()
+options.chrome_options = uc.ChromeOptions()
+session = cfSession(options=options)
 
-**CFSession** does not fully support modifying `Required_defaults()`, but there are multiple ways to hack this limitation.
-
-1.) Using cfSession
-```py
-from CFSession import Required_defaults, cf, cfSession
-from undetected_chromedriver import uc
-from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
-#cfSession uses _class_initialize to generate its own SiteBrowserProcess
-def function_hack(*args,**kwargs):
-    #Do ur stuff with the options and or DesiredCapabilities here.
-    defaults = Required_defaults()
-    defaults.options = uc.ChromeOptions()
-    defaults.dcp = DesiredCapabilities().CHROME
-    SBP = cf.SiteBrowserProcess(*args,**kwargs,ignore_defaults=True,defaults=defaults) # Generate cf.SiteBrowserProcess 
-    return SBP
-cfSession._class_initialize = function_hack
-cfSession.get(...)
-```
-
-2.) Using cfSimulacrum
-```py
-from CFSession import Required_defaults, cf, cfSimulacrum, cfDirectory
-from undetected_chromedriver import uc
-from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
-
-url = "https://nowsecure.nl"
-
-#Do ur stuff with the options and or DesiredCapabilities here.
-defaults = Required_defaults()
-defaults.options = uc.ChromeOptions()
-defaults.dcp = DesiredCapabilities().CHROME
-
-cfsim = cfSimulacrum()
-cfsim.bypass_mode = True #cfSimulacrum has bypass_mode disabled by default, set it on
-cfsim.copen(url, defaults=defaults)
-cfsim.find() #Run bypass
-response = cfsim.get(url)
 ```
 
 ## Installation:
