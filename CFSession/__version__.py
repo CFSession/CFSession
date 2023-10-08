@@ -11,9 +11,9 @@ Version manager for CFSession
 #     (1, 1, 2, 'alpha', 1) => "1.1.2a1"
 #     (1, 2, 0, 'beta', 2) => "1.2b2"
 #     (1, 2, 0, 'rc', 4) => "1.2rc4"
-#     (1, 2, 0, 'final', 0) => "1.2"
+#     (1, 2, 0, 'final', 0) => "1.2.0"
 
-__version_info__ = (1, 3, 0, 'beta', 0)
+__version_info__ = (1, 3, 0, 'final', 0)
 
 def _get_version(version_info):
     " Returns a PEP 440-compliant version number from version_info. "
