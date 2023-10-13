@@ -166,10 +166,10 @@ class CFBypass:
             child.join()
 
 class SiteBrowserProcess:
-    def __init__(self, destination: str, directory: cfDirectory, Options: Options, headless_mode: bool = False, process_timeout: int = 10, bypass_mode: bool = True, *args, **kwargs) -> None:
+    def __init__(self, destination: str, directory: cfDirectory, options: Options, headless_mode: bool = False, process_timeout: int = 10, bypass_mode: bool = True, *args, **kwargs) -> None:
         self.args = args
         self.kwargs = kwargs
-        self.ignore_defaults = Options.ignore_defaults
+        self.ignore_defaults = options.ignore_defaults
         self.destination = destination
         self.directory = directory
         self.process_done = False
@@ -178,7 +178,7 @@ class SiteBrowserProcess:
         self.exception = None
         self.has_started = False
         self.p_timeout = process_timeout
-        self.userOptions = Options
+        self.userOptions = options
         Path(self.directory.cache_path()).mkdir(parents=True, exist_ok=True) 
 
     def close(self):
@@ -201,7 +201,7 @@ class SiteBrowserProcess:
         desired_cap = self.userOptions.desired_capabilities
         cdriver_path = self.directory.chromedriver_path() #the function will return None(default), or a str path
         try:
-            self.driver =  uc.Chrome(desired_capabilities=desired_cap,options=options,driver_executable_path=cdriver_path,headless=self.isheadless,*self.args, **self.kwargs)
+            self.driver = uc.Chrome(desired_capabilities=desired_cap,options=options,driver_executable_path=cdriver_path,headless=self.isheadless,*self.args, **self.kwargs)
         except RuntimeError: #Catch if the objects were reused
             if self.ignore_defaults:
                 #Reset but keep the values
