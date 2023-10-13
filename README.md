@@ -65,7 +65,15 @@ import undetected_chromedriver as uc
 options = Options()
 options.chrome_options = uc.ChromeOptions()
 session = cfSession(options=options)
+```
+#### Error correcting issues:
+Sometimes a uc.Chrome() object has to refresh due to errors (e.g. network errors), the program tries to correct these errors by retrying again until a specified amount of attempts has reached, this operation requires recreating the class again.
+These cause issues where we have to recreate the `ChromeOptions` as it is not reusable by selenium's standards. 
 
+By default, the program resets all user setting to our preferred default setting, however if you have a preferred setting on mind then you can ignore our defaults by
+setting `ignore_defaults = True` on `Options`
+```py
+options = Options(ignore_defaults=True)
 ```
 
 ## Installation:
@@ -78,7 +86,9 @@ session = cfSession(options=options)
 
 ## Question: 
 
-**Why not just scrape fully on selenium?** There are some use cases that where some applications rely on a `requests` library to scrape on websites, while selenium is sensible option to prevent javascript challenges. This library will try and bypass javascript challenges by using session cookies so you can access the site just as how you would with `requests`.
+**Why not just scrape fully on selenium?** 
+- There are some use cases that where some applications rely on a `requests` library to scrape on websites, while selenium is sensible option to prevent javascript challenges. This library will try and bypass javascript challenges by using selenium as our solver. If the operation is successful, the session cookies are collected so you can access the site just as how you would with `requests` without the 405 and or 500 anymore.
+- Another point to make is that scraping with a full on web browser is pretty CPU intensive, it would make sense to use requests lib for a much lighter operation. The plan here is to run only the browser once to collect the cookies and then use requests library to scrape the website.
 
 **Is this just a requests wrapper?** No, it is simply an extension of `requests` library where it tries to simplify the process of bypassing cloudflare IUAM.
 
@@ -86,8 +96,8 @@ You can directly access the `requests.Session` object in the `cfSession.session`
 ```py
 from CFSession import cfSession
 
-cfs = cfSession()
-cfs.session #<--- A requests.Session object
+session = cfSession()
+session.session #<--- A requests.Session object
 ```
 
 ## Disclaimer:
