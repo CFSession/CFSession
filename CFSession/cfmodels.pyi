@@ -1,4 +1,4 @@
-from ..CFSession.cfdefaults import cfConstant as cfConstant
+from .cfdefaults import cfConstant as cfConstant
 from _typeshed import Incomplete
 from typing_extensions import Literal, Tuple
 import undetected_chromedriver as uc
