@@ -56,7 +56,7 @@ class cfSession():
         self.session = requests.Session()
         self.arg = cfarg
         self.kwarg = cfkwarg
-        self.headless = headless_mode
+        self.headless = headless_mode or options.headless
         self.directory = directory
         self.userOptions = options
         self.internalHandler = cfSessionHandler(self.directory)
