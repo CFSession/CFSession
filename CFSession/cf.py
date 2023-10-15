@@ -35,6 +35,7 @@ DUMMY = False
 def de_print(text: str):
     if DEBUG:
         try:
+            text = text.encode('utf-8')
             _de_log.debug(text)
         except UnicodeEncodeError:
             _de_log.error("Uni Err, ascii md")
@@ -46,6 +47,7 @@ def de_print(text: str):
 def norm_print(text: str):
     if STDOUT or DEBUG:
         try:
+            text = text.encode('utf-8')
             _de_log.info(text)
         except UnicodeEncodeError:
             _de_log.error("Uni Err, ascii md")
