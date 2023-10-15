@@ -1,3 +1,4 @@
+
 """
 CFSession.cfbrowser
 ~~~~~~~~~~~~~
@@ -55,7 +56,7 @@ class cfSession():
         self.session = requests.Session()
         self.arg = cfarg
         self.kwarg = cfkwarg
-        self.headless = headless_mode
+        self.headless = headless_mode or options.headless
         self.directory = directory
         self.userOptions = options
         self.internalHandler = cfSessionHandler(self.directory)
@@ -169,7 +170,7 @@ class cfSession():
     def set_cookies(self):
         "Assigns the cookies available on the cache"
         try:
-            cookies = json.load(open(self.directory.cookie_path(),"r"))
+            cookies = self.internalHandler.get_cookie_json()
             selenium_headers = json.load(open(self.directory.session_path(),"r"))
         except FileNotFoundError:
             self.set_agent()
@@ -270,9 +271,9 @@ class cfSession():
             if caught_code == 503:
                 self.exception = CloudflareBlocked(response=caught_exception.response)
             self.exception = HTTPError(response=caught_exception.response)
-        try:
+        if content != None: #Explicit None as non-200 http response is regarded as falsy
             content.raise_for_status = lambda: self._response_hook_raiseforstatus()
-        except AttributeError: #Indicates Response was not created, this usually means that the error is non-HTTP and must be raised immediately
+        else:
             raise self.exception
         return content    
 
@@ -282,7 +283,7 @@ class cfSession():
                 raise self.exception
 
     def _class_initialize(self,site_requested,directory,*args,**kwargs):
-        return SiteBrowserProcess(site_requested,directory=directory,Options=self.userOptions,headless_mode=self.headless,*args,**kwargs)
+        return SiteBrowserProcess(site_requested,directory=directory,options=self.userOptions,headless_mode=self.headless,*args,**kwargs)
     
     def close(self):
         "Gracefully close a session and closes browser if it has opened."
@@ -363,9 +364,17 @@ class cfSessionHandler:
         except FileNotFoundError:
             return []
         
+    def get_headers(self):
+        try:
+            return json.load(open(self.directory.session_path, "r"))
+        except FileNotFoundError:
+            return None
+        
 class cfSimulacrum(cfSession):
-    def __init__(self, *aer, **res):
-        super().__init__(*aer,**res)
+    def __init__(self, directory: cfDirectory = cfDirectory(), options: Options = Options(), *aer, **res):
+        self.args_for_sbp = aer
+        self.kwargs_for_sbp = res
+        super().__init__(directory=directory, options=options, *aer,**res)
         self.cdriver = None
         self.cfinder = None
         self.site = None
@@ -373,8 +382,11 @@ class cfSimulacrum(cfSession):
         
     def copen(self, site_requested, *aer, **res) -> SiteBrowserProcess: # returns SiteBrowserProcess
         "Initializes the chromedriver and opens the browser"
+        #Prioritize sent arguments over class sent ones 
+        send_aer = aer or self.args_for_sbp 
+        send_res = res or self.kwargs_for_sbp
         self.site = site_requested
-        self.cdriver = self._class_initialize(site_requested,directory=self.directory, bypass_mode=self.bypass_mode, *aer, **res)
+        self.cdriver = self._class_initialize(site_requested=site_requested, directory=self.directory, bypass_mode=self.bypass_mode, *send_aer, **send_res)
         self.cdriver.initialize_chromedriver()
         self.cdriver.driver.get(self.site)
         return self.cdriver

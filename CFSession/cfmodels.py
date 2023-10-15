@@ -9,7 +9,6 @@ import os
 from .cfdefaults import cfConstant
 import undetected_chromedriver as uc
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
-from selenium.webdriver.common.proxy import Proxy
 
 DEFAULT = cfConstant.DEF_DIRECTORY
 DEFAULT_NAME = cfConstant.DEF_DIRECTORY_NAME
@@ -119,19 +118,15 @@ class Options:
         chrome_options.add_argument("--disable-renderer-backgrounding")
         chrome_options.add_argument("--disable-backgrounding-occluded-windows")
         chrome_options.add_argument("--disable-popup-blocking")
-        if self.headless:
-            chrome_options.add_argument('--headless')
-        chrome_options.no_sandbox = False
         if self.proxy:
+            from selenium.webdriver.common.proxy import Proxy
+            from selenium.webdriver.common.proxy import ProxyType
             proxy_http = self.proxy.get('http', None) or self.proxy.get('https', None) or self.proxy.get('ftp', None)
             proxy = Proxy()
-            if self.proxy.get('http'):
-                proxy.http_proxy = proxy_http
-            elif self.proxy.get('https'):
-                proxy.ssl_proxy = proxy_http
-            elif self.proxy.get('ftp'):
-                proxy.ftp_proxy = proxy_http
-            else:
-                proxy.auto_detect = proxy_http
+            proxy.proxy_type = ProxyType.MANUAL
+            proxy.http_proxy = proxy_http
+            proxy.ssl_proxy = proxy_http
+            proxy.ftp_proxy = proxy_http
             chrome_options.proxy = proxy
+        chrome_options.no_sandbox = False
         return chrome_options

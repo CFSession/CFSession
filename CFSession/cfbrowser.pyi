@@ -1,8 +1,8 @@
 import requests
-from ..CFSession.cf import CFBypass, SiteBrowserProcess
-from ..CFSession.cfdefaults import cfConstant
-from ..CFSession.cfmodels import cfDirectory, Options
-from ..CFSession.cfexception import CFException, CloudflareBlocked, ConnectTimeout, HTTPError, NetworkError, NotFound, ReadTimeout, Timeout, TooManyRedirects, URLRequired
+from .cf import CFBypass, SiteBrowserProcess
+from .cfdefaults import cfConstant
+from .cfmodels import cfDirectory, Options
+from .cfexception import CFException, CloudflareBlocked, ConnectTimeout, HTTPError, NetworkError, NotFound, ReadTimeout, Timeout, TooManyRedirects, URLRequired
 from _typeshed import Incomplete
 
 from typing_extensions import TypeAlias, Self
