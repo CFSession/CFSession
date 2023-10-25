@@ -12,16 +12,17 @@ When a program is able to pass through the IUAM or Captcha verification, it imme
 
 The library wraps around requests library.
 
-**Tested request types:**
+**Supported request types:**
 * GET
 * POST
-
-**Untested request types: but functionally implemented:**
+* HEAD
 * PUT
 * PATCH
 * DELETE
 * OPTIONS
 
+[Read the wiki for a more extensive details
+](https://github.com/CFSession/CFSession/wiki)
 ## Usage:
 
 ### Normal Usage:
