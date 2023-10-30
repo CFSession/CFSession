@@ -216,6 +216,7 @@ class SiteBrowserProcess:
         de_print("Headless mode driver initialized")
         user_agent = headless_driver.execute_script("return navigator.userAgent;").replace("Headless", "")
         de_print("Collected userAgent: %s" % user_agent)
+        headless_driver.quit()
         return user_agent
     
     def initialize_chromedriver(self):
