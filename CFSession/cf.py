@@ -35,7 +35,6 @@ DUMMY = False
 def de_print(text: str):
     if DEBUG:
         try:
-            text = text.encode('utf-8')
             _de_log.debug(text)
         except UnicodeEncodeError:
             _de_log.error("Uni Err, ascii md")
@@ -47,7 +46,6 @@ def de_print(text: str):
 def norm_print(text: str):
     if STDOUT or DEBUG:
         try:
-            text = text.encode('utf-8')
             _de_log.info(text)
         except UnicodeEncodeError:
             _de_log.error("Uni Err, ascii md")
@@ -195,28 +193,41 @@ class SiteBrowserProcess:
     def create_directory(self):
         Path(self.destination).mkdir(parents=True, exist_ok=True)
 
-    def _init_chromedriver_manual(self):
-        self.driver = uc.Chrome(*self.args, **self.kwargs)
-
-    def initialize_chromedriver(self):
-        options = self.userOptions.chrome_options
-        desired_cap = self.userOptions.desired_capabilities
-        cdriver_path = self.directory.chromedriver_path() #the function will return None(default), or a str path
+    def _init_chromedriver(self, *args, **kwargs):
+        "Generates new Chromedriver, with chromeoptions checking"
         try:
-            self.driver = uc.Chrome(desired_capabilities=desired_cap,options=options,driver_executable_path=cdriver_path,headless=self.isheadless,*self.args, **self.kwargs)
-        except RuntimeError: #Catch if the objects were reused
-            if self.ignore_defaults:
-                #Reset but keep the values
-                self.userOptions.reset_dcp(defaults=False)
-                self.userOptions.reset_chromeoptions(defaults=False)
-                warn_print("userOptions for dcp and chromeoptions is reset but kept the attributes",0)
-            else:
-                #Reset to default values
-                self.userOptions.reset_dcp()
-                self.userOptions.reset_chromeoptions()
             options = self.userOptions.chrome_options
             desired_cap = self.userOptions.desired_capabilities
-            self.driver =  uc.Chrome(desired_capabilities=desired_cap,options=options,driver_executable_path=cdriver_path,headless=self.isheadless,*self.args, **self.kwargs)
+            cdriver_path = self.directory.chromedriver_path()
+            driver = uc.Chrome(desired_capabilities=desired_cap,options=options,driver_executable_path=cdriver_path,headless=self.isheadless,*args, **kwargs)
+        except RuntimeError:
+            if self.ignore_defaults:
+                warn_print("userOptions for dcp and chromeoptions is reset but kept the attributes",0)
+            self.userOptions.reset_dcp(defaults=(not self.ignore_defaults))
+            self.userOptions.reset_chromeoptions(defaults=(not self.ignore_defaults))
+            options = self.userOptions.chrome_options
+            desired_cap = self.userOptions.desired_capabilities
+            cdriver_path = self.directory.chromedriver_path()
+            driver = uc.Chrome(desired_capabilities=desired_cap,options=options,driver_executable_path=cdriver_path,headless=self.isheadless,*args, **kwargs)
+        return driver
+
+    def initialize_headless(self) -> str:
+        headless_driver = self._init_chromedriver(*self.args, **self.kwargs)
+        de_print("Headless mode driver initialized")
+        user_agent = headless_driver.execute_script("return navigator.userAgent;").replace("Headless", "")
+        de_print("Collected userAgent: %s" % user_agent)
+        return user_agent
+    
+    def initialize_chromedriver(self):
+        """Main initialzor for SBP"""
+        if self.isheadless:
+            norm_print("Headless Mode detected")
+            user_agent = self.initialize_headless()
+            self.userOptions.user_agent = user_agent
+            #Post headless reset to prevent checking
+            self.userOptions.reset_dcp(defaults=(not self.ignore_defaults))
+            self.userOptions.reset_chromeoptions(defaults=(not self.ignore_defaults))
+        self.driver =self._init_chromedriver(*self.args, **self.kwargs)
         norm_print("Driver initialized")
         
     def init_cf(self,CFobj: CFBypass = CFBypass) -> CFBypass:

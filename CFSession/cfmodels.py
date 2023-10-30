@@ -61,6 +61,7 @@ class Options:
         ignore_defaults: bool = False,
         chrome_options: uc.ChromeOptions = None,
         desired_capabilities: DesiredCapabilities = None,
+        user_agent: str = None
     ):
         """Will serve as the configuration options for both the CFSession and the WebDriver Chrome.
         Args:
@@ -74,6 +75,7 @@ class Options:
             ignore_defaults (bool, optional): Whether to ignore default settings. Default is False.
             chrome_options (uc.ChromeOptions, optional): Custom Chrome options to configure the browser.
             desired_capabilities (DesiredCapabilities, optional): Desired capabilities for the WebDriver session.
+            user_agent (str, optional): Sets the user agent of the current sesssion.
 
         Note:
             - `proxy` should be a list of dictionaries with proxy server settings.
@@ -82,6 +84,7 @@ class Options:
         """
         self.proxy = proxy
         self.headless = headless
+        self.user_agent = user_agent
         self.ignore_defaults = ignore_defaults
         self.chrome_options = chrome_options if chrome_options else self.get_default_chromeoptions()
         self.desired_capabilities = desired_capabilities if desired_capabilities else self.get_default_dcp()
@@ -118,6 +121,8 @@ class Options:
         chrome_options.add_argument("--disable-renderer-backgrounding")
         chrome_options.add_argument("--disable-backgrounding-occluded-windows")
         chrome_options.add_argument("--disable-popup-blocking")
+        if self.user_agent:
+            chrome_options.add_argument("--user-agent=%s" % self.user_agent)
         if self.proxy:
             from selenium.webdriver.common.proxy import Proxy
             from selenium.webdriver.common.proxy import ProxyType
