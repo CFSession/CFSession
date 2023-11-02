@@ -14,6 +14,7 @@ import datetime
 from typing import Union
 import json
 import os
+import re
 
 
 class cfSession():
@@ -235,21 +236,23 @@ class cfSession():
             except requests.exceptions.HTTPError as e:
                 #Only HTTPERROR should we catch e.response
                 http_code = e.response.status_code
-                http_content = e.response.content
+                http_content = e.response.text
                 caught_exception = e
                 if http_code == 404:
                     self.exception = NotFound(response=e.response)
                     break
-                elif http_code == 503:
+                elif http_code in (503, 403):
                     #CF blocked us, update the token
                     #Recheck token
-                    self.reload_token(url,reset=True)
-                    self.set_cookies()
-                elif http_code == 403:
-                    #Different blocking method, usually its an IUAM javascript challenge but sometimes a recaptcha
-                    self.reload_token(url,reset=True)
-                    self.set_cookies()
-                continue
+                    title_match = False
+                    matches = re.search("<title>(.*)</title>", http_content)
+                    if matches:
+                        title_match = matches[1] in cfConstant.DEF_CLOUDFLARE_TARGET
+                    if title_match:
+                        self.reload_token(url,reset=True)
+                        self.set_cookies()
+                        continue
+                break
             except requests.exceptions.ConnectionError as e:
                 caught_exception = e
                 self.exception = NetworkError(response=e)
