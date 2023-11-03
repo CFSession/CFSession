@@ -242,16 +242,13 @@ class cfSession():
                     self.exception = NotFound(response=e.response)
                     break
                 elif http_code in (503, 403):
-                    #CF blocked us, update the token
-                    #Recheck token
-                    title_match = False
-                    matches = re.search("<title>(.*)</title>", http_content)
-                    if matches:
-                        title_match = matches[1] in cfConstant.DEF_CLOUDFLARE_TARGET
-                    if title_match:
+                    if self._is_cf_site(http_content):
+                        #CF blocked us, update the token
+                        #Recheck token
                         self.reload_token(url,reset=True)
                         self.set_cookies()
                         continue
+                self.exception = HTTPError(response=e.response)
                 break
             except requests.exceptions.ConnectionError as e:
                 caught_exception = e
@@ -271,7 +268,7 @@ class cfSession():
                 break
         else:
             caught_code = caught_exception.response.status_code
-            if caught_code == 503:
+            if self._is_cf_site(caught_exception.response.text):
                 self.exception = CloudflareBlocked(response=caught_exception.response)
             self.exception = HTTPError(response=caught_exception.response)
         if content != None: #Explicit None as non-200 http response is regarded as falsy
@@ -281,13 +278,18 @@ class cfSession():
         return content    
 
     def _response_hook_raiseforstatus(self):
-        """Raises `CFException` if an error has occured"""
+        """Raises `HTTPError` if there is a non-200 response"""
         if isinstance(self.exception,CFException):
                 raise self.exception
 
     def _class_initialize(self,site_requested,directory,*args,**kwargs):
         return SiteBrowserProcess(site_requested,directory=directory,options=self.userOptions,headless_mode=self.headless,*args,**kwargs)
     
+    def _is_cf_site(self, content):
+        matches = re.search("<title>(.*)</title>", content)
+        if matches:
+            return matches[1] in cfConstant.DEF_CLOUDFLARE_TARGET
+        return False
     def close(self):
         "Gracefully close a session and closes browser if it has opened."
         self.session.close()
