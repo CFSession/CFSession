@@ -33,7 +33,7 @@ jobs:
       run: |
         wget -q -O /tmp/chrome.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb \
         && sudo apt install -y /tmp/chrome.deb \
-        && rm /tmp/chrome.deb \
+        && rm /tmp/chrome.deb
         sudo rm /usr/bin/chromium && sudo rm /usr/bin/chromium-browser
         sudo ln -s $(which google-chrome-stable) /usr/bin/chromium
     - name: Install package itself
