@@ -3,6 +3,7 @@
 #Then files we need to follow will be listed here
 !.gitignore
 !.github/*
+!.github
 !CFSession
 !CFSession/*
 !test
