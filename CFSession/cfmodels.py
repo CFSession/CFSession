@@ -132,18 +132,24 @@ class Proxy(UserDict):
             self.data = proxy
             self.proxy_address = ''
         #Final touch
-        self.data['no_proxy'] = 'localhost,127.0.0.1'
         if self.dns_on_proxy:
             self.proxy_address = self.proxy_address.replace('socks5', 'socks5h')
     
-    def test_proxy(self, protocol = 'https'):
+    def test_proxy(self, protocol = 'https', demo = True):
+        """Tests if a proxy is working properly, returns detail of your setup and the collected ip.
+        Args:
+        - demo (bool, optional): Demonstration mode, Redacted configuration if True. 
+        """
         url = f'{protocol}://httpbin.org/ip'
         response=requests.get(url, proxies=self)
         decoded_resp = response.json()
+        configuration = self
+        if demo:
+            configuration = '[REDACTED]'
         return {'response': decoded_resp, 
                 'url': url, 
                 'protocol': protocol, 
-                'config': self}
+                'config': configuration}
 
 class Options:
     """Options object
@@ -234,7 +240,8 @@ class Options:
         "selenium-wire proxy options"
         if self.proxy:
             return {
-                'proxy': self.proxy
+                'proxy': self.proxy,
+                'no_proxy': 'localhost,127.0.0.1'
             }
         return {}
     
