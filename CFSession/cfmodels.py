@@ -4,11 +4,15 @@ CFSession.cfmodels
 This module contains the directory options and some supported configurable options
 """
 
-
 import os
+from typing import Union, Iterable, Literal
 from .cfdefaults import cfConstant
+from .cfexception import ProxyConfigurationError, ProxyDecodeError
 import undetected_chromedriver as uc
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+from collections import UserDict
+import requests
+import re
 
 DEFAULT = cfConstant.DEF_DIRECTORY
 DEFAULT_NAME = cfConstant.DEF_DIRECTORY_NAME
@@ -21,9 +25,9 @@ class cfDirectory:
     def __init__(self, cache_path: str = DEFAULT, session_name = DEFAULT_NAME, chromedriver_path: str = None) -> None:
         """
         Args:
-            cache_path: Directory where the session cookies and other dumps will be stored.
-            session_name: Name of the session files Type: `Tuple` (cookie_filename, useragent_filename)
-            chromedriver_path: Path of the chromedriver
+            - cache_path: Directory where the session cookies and other dumps will be stored.
+            - session_name: Name of the session files Type: `Tuple` (cookie_filename, useragent_filename)
+            - chromedriver_path: Path of the chromedriver
         """
         self.cache = cache_path
         if not isinstance(session_name, tuple): #Guard against invalid arguments
@@ -51,40 +55,137 @@ class cfDirectory:
         elif self.chromedriver:
             return os.path.join(os.getcwd(), self.chromedriver)
 
+class Proxy(UserDict):
+    """Proxy Manager for cfSession
+    Handles proxy configurations.
+    """
+    def __init__(self, 
+        proxy: dict = None, 
+        proxy_hostname: str = None,
+        proxy_scheme: str = None, 
+        proxy_port: int = None , 
+        username: str = None, 
+        password: str = None, 
+        host: Union[str, Iterable[Literal['https','http']]] = ['https','http'],
+        resolve_by_proxy: bool = True
+    ) -> None:
+        """Args:
+        - proxy (dict): A dictionary containing proxy details. If provided, individual proxy details should not be specified.
+        - proxy_hostname (str): The hostname or IP address of the proxy.
+        - proxy_scheme (str): The protocol your proxy is using
+        - proxy_port (int): The port number of the proxy.
+        - username (str): The username for proxy authentication.
+        - password (str): The password for proxy authentication.
+        - host (str, Iterable): The protocol or host target for the proxy (e.g., 'http', 'https')
+        - resolve_by_proxy (bool): Resolve DNS by proxy when using socks5. 
+        If 'proxy' is provided, it takes precedence over individual proxy details. If 'proxy' is not provided,
+        'proxy_hostname' and 'proxy_port' must be specified.
+        
+        Proxy format for proxy parameter: 
+        `{'{Scheme/Host Target}': '{proxyProtocol}://{username}:{password}@{hostname}:{PORT}'}`
+        
+        Example:
+            proxy = {'https': 'socks5://user:password123@hostname.com:3234'}
+            Options(proxy=Proxy(proxy=proxy))
+        """
+        #Guard against invalid configurations
+        if not isinstance(proxy, dict):
+            raise ValueError("The 'proxy' argument must be a dictionary.")
+        elif proxy and any((proxy_hostname, proxy_port, proxy_scheme)):
+            raise ProxyConfigurationError("Either provide the 'proxy' argument or specify 'proxy_hostname', 'proxy_scheme', 'proxy_port' individually.")
+        self.data = {}
+        self.host = host
+        self.dns_on_proxy = resolve_by_proxy
+        if proxy:
+            self.data = proxy
+            self.proxy_address = list(proxy.values())[0]
+            #Extract values
+            match = re.match(r'^(?P<scheme>\w+)://(?:((?P<username>\w+):(?P<password>\w+)@)|(?P<username_only>\w+)@)?(?P<hostname>[\w.]+):(?P<port>\d+)$', self.proxy_address)
+            if not match:
+                raise ProxyDecodeError('Your proxy format is invalid')
+            self.proxy_scheme = match.group('scheme')
+            self.proxy_hostname = match.group('hostname')
+            self.proxy_port = int(match.group('port'))
+            self.username = match.group('username') or match.group('username_only')
+            self.password = match.group('password')
+        elif any((proxy_hostname, proxy_port, proxy_scheme)):
+            #Guard against invalid configurations again
+            if not proxy_hostname:
+                raise ProxyConfigurationError("'proxy_hostname' is empty")
+            if not proxy_scheme:
+                raise ProxyConfigurationError("'proxy_scheme' is empty")
+            if not proxy_port:
+                raise ProxyConfigurationError("'proxy_port' is empty")
+            self.proxy_hostname = proxy_hostname
+            self.proxy_scheme = proxy_scheme
+            self.proxy_port = proxy_port
+            self.username = username
+            self.password = password
+            credformat = f"{self.username}:{self.password}@" if self.username and self.password else ""
+            self.proxy_address = f"{credformat}{self.proxy_hostname}:{proxy_port}"
+            if isinstance(self.host, Iterable):
+                for host in self.host:
+                    self.data[host] = self.proxy_address
+            else:
+                self.data = {self.host: self.proxy_address}
+        else:
+            self.data = proxy
+            self.proxy_address = ''
+        #Final touch
+        self.data['no_proxy'] = 'localhost,127.0.0.1'
+        if self.dns_on_proxy:
+            self.proxy_address = self.proxy_address.replace('socks5', 'socks5h')
+    
+    def test_proxy(self, protocol = 'https'):
+        url = f'{protocol}://httpbin.org/ip'
+        response=requests.get(url, proxies=self)
+        decoded_resp = response.json()
+        return {'response': decoded_resp, 
+                'url': url, 
+                'protocol': protocol, 
+                'config': self}
+
 class Options:
     """Options object
     Handles the options, default settings and configuration that will be used on both uc.Chrome() and cfSession
     """
     def __init__(self,
-        proxy: dict = {},
+        proxy: Union[Proxy, dict] = None,
         headless: bool = False,
         ignore_defaults: bool = False,
         chrome_options: uc.ChromeOptions = None,
         desired_capabilities: DesiredCapabilities = None,
-        user_agent: str = None
+        user_agent: str = None,
+        ignore_cert_errors: bool = False
     ):
         """Will serve as the configuration options for both the CFSession and the WebDriver Chrome.
         Args:
-            proxy (list, optional):\
+            - proxy (list, optional):\
                 proxy server setting. Example:\
                 `{\
                     "https": "https://ip:port"\
                 }`
                 Supported protocols: http, https, ftp, socks5 `http: 'socks5://ip:port'`
-            headless (bool, optional): Whether to run the browser in headless mode (no GUI). Default is False.
-            ignore_defaults (bool, optional): Whether to ignore default settings. Default is False.
-            chrome_options (uc.ChromeOptions, optional): Custom Chrome options to configure the browser.
-            desired_capabilities (DesiredCapabilities, optional): Desired capabilities for the WebDriver session.
-            user_agent (str, optional): Sets the user agent of the current sesssion.
-
+            - headless (bool, optional): Whether to run the browser in headless mode (no GUI). Default is False.
+            - ignore_defaults (bool, optional): Whether to ignore default settings. Default is False.
+            - chrome_options (uc.ChromeOptions, optional): Custom Chrome options to configure the browser.
+            - desired_capabilities (DesiredCapabilities, optional): Desired capabilities for the WebDriver session.
+            - user_agent (str, optional): Sets the user agent of the current sesssion.
+            - ignore_cert_errors (bool, optional): Ignores certificate errors
         Note:
             - `proxy` should be a list of dictionaries with proxy server settings.
             - `chrome_options` should be an instance of `uc.ChromeOptions`.
             - `desired_capabilities` should be an instance of `DesiredCapabilities`.
         """
-        self.proxy = proxy
+        if isinstance(proxy, dict):
+            self.proxy = Proxy(proxy)
+        elif isinstance(proxy, Proxy):
+            self.proxy = proxy
+        else:
+            self.proxy = proxy
         self.headless = headless
         self.user_agent = user_agent
+        self.ignore_cert_errors = ignore_cert_errors
         self.ignore_defaults = ignore_defaults
         self.chrome_options = chrome_options if chrome_options else self.get_default_chromeoptions()
         self.desired_capabilities = desired_capabilities if desired_capabilities else self.get_default_dcp()
@@ -123,15 +224,22 @@ class Options:
         chrome_options.add_argument("--disable-popup-blocking")
         if self.user_agent:
             chrome_options.add_argument("--user-agent=%s" % self.user_agent)
-        if self.proxy:
-            from selenium.webdriver.common.proxy import Proxy
-            from selenium.webdriver.common.proxy import ProxyType
-            proxy_http = self.proxy.get('http', None) or self.proxy.get('https', None) or self.proxy.get('ftp', None)
-            proxy = Proxy()
-            proxy.proxy_type = ProxyType.MANUAL
-            proxy.http_proxy = proxy_http
-            proxy.ssl_proxy = proxy_http
-            proxy.ftp_proxy = proxy_http
-            chrome_options.proxy = proxy
+        if self.ignore_cert_errors:
+            chrome_options.add_argument("--ignore-certificate-errors-spki-list")
+            chrome_options.add_argument("--ignore-certificate-errors")
         chrome_options.no_sandbox = False
         return chrome_options
+    
+    def get_proxy_options(self):
+        "selenium-wire proxy options"
+        if self.proxy:
+            return {
+                'proxy': self.proxy
+            }
+        return {}
+    
+    def get_seleniumwire_options(self):
+        "selenium-wire specific options"
+        swire_options = {}
+        swire_options.update(self.get_proxy_options())
+        return swire_options
