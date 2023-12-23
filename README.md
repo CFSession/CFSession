@@ -2,7 +2,7 @@
 <p align="center">A python script utilizing undetected-chromedriver to collect session cookies in a cloudflare IUAM protected site</p>
 <p align="center">
 <a href="https://pypi.org/project/CFSession"><img src="https://github.com/Kinuseka/CFSession/actions/workflows/python-package.yml/badge.svg" alt="Build Test"></a>
-
+<a href="https://www.buymeacoffee.com/kinuseka" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="20" width="100"></a>
 
 
 
