@@ -3,8 +3,9 @@ CFSession.cf
 ~~~~~~~~~~~~~
 This module contains the internal operations for controlling the behavior of the chromedriver
 """
-#UC
+#uc
 import undetected_chromedriver as uc
+from seleniumwire import undetected_chromedriver as ucwire
 #Sel
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.common.exceptions import StaleElementReferenceException, TimeoutException
@@ -192,14 +193,17 @@ class SiteBrowserProcess:
 
     def create_directory(self):
         Path(self.destination).mkdir(parents=True, exist_ok=True)
-
+    
     def _init_chromedriver(self, *args, **kwargs):
         "Generates new Chromedriver, with chromeoptions checking"
         try:
             options = self.userOptions.chrome_options
             desired_cap = self.userOptions.desired_capabilities
             cdriver_path = self.directory.chromedriver_path()
-            driver = uc.Chrome(desired_capabilities=desired_cap,options=options,driver_executable_path=cdriver_path,headless=self.isheadless,*args, **kwargs)
+            if self.userOptions.proxy:
+                driver = ucwire.Chrome(desired_capabilities=desired_cap,options=options,driver_executable_path=cdriver_path,headless=self.isheadless,seleniumwire_options=self.userOptions.get_seleniumwire_options(),*args, **kwargs)
+            else:
+                driver = uc.Chrome(desired_capabilities=desired_cap,options=options,driver_executable_path=cdriver_path,headless=self.isheadless,*args, **kwargs)
         except RuntimeError:
             if self.ignore_defaults:
                 warn_print("userOptions for dcp and chromeoptions is reset but kept the attributes",0)
@@ -208,7 +212,10 @@ class SiteBrowserProcess:
             options = self.userOptions.chrome_options
             desired_cap = self.userOptions.desired_capabilities
             cdriver_path = self.directory.chromedriver_path()
-            driver = uc.Chrome(desired_capabilities=desired_cap,options=options,driver_executable_path=cdriver_path,headless=self.isheadless,*args, **kwargs)
+            if self.userOptions.proxy:
+                driver = ucwire.Chrome(desired_capabilities=desired_cap,options=options,driver_executable_path=cdriver_path,headless=self.isheadless,seleniumwire_options=self.userOptions.get_seleniumwire_options(),*args, **kwargs)
+            else:
+                driver = uc.Chrome(desired_capabilities=desired_cap,options=options,driver_executable_path=cdriver_path,headless=self.isheadless,*args, **kwargs)
         return driver
 
     def initialize_headless(self) -> str:
