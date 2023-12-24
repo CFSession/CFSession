@@ -89,7 +89,7 @@ class Proxy(UserDict):
             Options(proxy=Proxy(proxy=proxy))
         """
         #Guard against invalid configurations
-        if not isinstance(proxy, dict):
+        if not isinstance(proxy, dict) and proxy is not None:
             raise ValueError("The 'proxy' argument must be a dictionary.")
         elif proxy and any((proxy_hostname, proxy_port, proxy_scheme)):
             raise ProxyConfigurationError("Either provide the 'proxy' argument or specify 'proxy_hostname', 'proxy_scheme', 'proxy_port' individually.")
