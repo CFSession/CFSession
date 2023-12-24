@@ -77,7 +77,8 @@ class Proxy(UserDict):
         - username (str): The username for proxy authentication.
         - password (str): The password for proxy authentication.
         - host (str, Iterable): The protocol or host target for the proxy (e.g., 'http', 'https')
-        - resolve_by_proxy (bool): Resolve DNS by proxy when using socks5. 
+        - resolve_by_proxy (bool): Resolve DNS by proxy when using socks5.
+        
         If 'proxy' is provided, it takes precedence over individual proxy details. If 'proxy' is not provided,
         'proxy_hostname' and 'proxy_port' must be specified.
         
@@ -85,8 +86,10 @@ class Proxy(UserDict):
         `{'{Scheme/Host Target}': '{proxyProtocol}://{username}:{password}@{hostname}:{PORT}'}`
         
         Example:
-            proxy = {'https': 'socks5://user:password123@hostname.com:3234'}
-            Options(proxy=Proxy(proxy=proxy))
+        ```py
+            proxy = Proxy({'https': 'socks5://user:password123@hostname.com:3234'})
+            Options(proxy=proxy)
+        ```
         """
         #Guard against invalid configurations
         if not isinstance(proxy, dict) and proxy is not None:
@@ -141,12 +144,23 @@ class Proxy(UserDict):
         - demo (bool, optional): Demonstration mode, Redacted configuration if True. 
         """
         url = f'{protocol}://httpbin.org/ip'
-        response=requests.get(url, proxies=self)
-        decoded_resp = response.json()
+        try:
+            response=requests.get(url, proxies=self)
+            response.raise_for_status()
+            decoded_resp = response.json()
+        except requests.exceptions.HTTPError as e:
+            decoded_resp = {
+                'origin': False,
+                'response': e.response
+            }
+        except requests.exceptions.RequestException as e:
+            decoded_resp = {
+                'origin': False,
+            }
         configuration = self
         if demo:
             configuration = '[REDACTED]'
-        return {'response': decoded_resp, 
+        return {'result': decoded_resp, 
                 'url': url, 
                 'protocol': protocol, 
                 'config': configuration}
@@ -178,6 +192,7 @@ class Options:
             - desired_capabilities (DesiredCapabilities, optional): Desired capabilities for the WebDriver session.
             - user_agent (str, optional): Sets the user agent of the current sesssion.
             - ignore_cert_errors (bool, optional): Ignores certificate errors
+
         Note:
             - `proxy` should be a list of dictionaries with proxy server settings.
             - `chrome_options` should be an instance of `uc.ChromeOptions`.
