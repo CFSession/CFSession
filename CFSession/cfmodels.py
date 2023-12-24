@@ -122,7 +122,7 @@ class Proxy(UserDict):
             self.username = username
             self.password = password
             credformat = f"{self.username}:{self.password}@" if self.username and self.password else ""
-            self.proxy_address = f"{credformat}{self.proxy_hostname}:{proxy_port}"
+            self.proxy_address = f"{self.proxy_scheme}://{credformat}{self.proxy_hostname}:{proxy_port}"
             if isinstance(self.host, Iterable):
                 for host in self.host:
                     self.data[host] = self.proxy_address
