@@ -156,6 +156,7 @@ class Proxy(UserDict):
         except requests.exceptions.RequestException as e:
             decoded_resp = {
                 'origin': False,
+                'exception': e
             }
         configuration = self
         if demo:
