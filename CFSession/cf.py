@@ -3,8 +3,9 @@ CFSession.cf
 ~~~~~~~~~~~~~
 This module contains the internal operations for controlling the behavior of the chromedriver
 """
-#UC
+#uc
 import undetected_chromedriver as uc
+from seleniumwire import undetected_chromedriver as ucwire
 #Sel
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.common.exceptions import StaleElementReferenceException, TimeoutException
@@ -74,6 +75,7 @@ class CFBypass:
         self.timeout = timeout
         self.bypass_mode = bypass_mode
         self.children = []
+        self.switching = [0, -1]
     
     def start(self):
         return self._main_process()
@@ -100,59 +102,97 @@ class CFBypass:
             (By.TAG_NAME, 'body'),
         )))
         time.sleep(time_to_sleep)
+    
+    def window_manager(self):
+        if len(self.driver.window_handles) > 2:
+            oldest_window = self.driver.window_handles[0]
+            self.driver.switch_to.window(oldest_window)
+            self.driver.close()
+            self.window_handles = self.driver.window_handles
+            self.driver.switch_to.window(self.window_handles[-1])  # Switch to the latest window
 
     def init_bypass(self):
         self.driver.execute_script(f'window.open("{self.website}","_blank");')
-        self.WaitForElement(10)
+        self.WaitForElement(3)
         self.driver.switch_to.window(window_name=self.driver.window_handles[0]) 
-        self.WaitForElement(5)
+        self.WaitForElement(3)
         self.driver.close()
         self.driver.switch_to.window(window_name=self.driver.window_handles[0])
     
     def click_bypass(self):
         #https://stackoverflow.com/questions/76575298/how-to-click-on-verify-you-are-human-checkbox-challenge-by-cloudflare-using-se
         try:
-            self.driver.execute_script(f'window.open("{self.website}","_blank");')
+            self.driver.switch_to.window(window_name=self.driver.window_handles[0])
             self.WaitForElement(2)
             WebDriverWait(self.driver, 3).until(EC.frame_to_be_available_and_switch_to_it((By.CSS_SELECTOR,"iframe[title='Widget containing a Cloudflare security challenge']")))
             WebDriverWait(self.driver, 3).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "label.ctp-checkbox-label"))).click()
+            time.sleep(1)
             de_print("Clicked on verify")
+            self.driver.switch_to.window(window_name=self.driver.window_handles[-1])
+            self.driver.execute_script(f'window.open("{self.website}","_blank");')
+            time.sleep(7)
         except TimeoutException:
             de_print("Click bypass Timeout")
-            self.driver.close()
-            self.driver.switch_to.window(window_name=self.driver.window_handles[0])
         except Exception:
             warn_print("An error occured on click_bypass")
+        self.driver.switch_to.window(window_name=self.driver.window_handles[self.switching[0]])
+        self.switching.reverse()
 
     def main_bypass(self):
         self.click_bypass()
 
+    def scan_windows(self):
+        norm_print('Scanning windows')
+        for window_handle in self.driver.window_handles:
+            self.driver.switch_to.window(window_handle)
+            title = self.driver.title
+            de_print(f"cur: {title}")
+            if not any(ext in title for ext in self.TARGET_NAME):
+                return True
+
     def _main_process(self):
-        timeout = 0
-        if self.bypass_mode: self.init_bypass()
-        while any(ext in self.driver.title for ext in self.TARGET_NAME):
-            timeout += 1
-            if timeout >= self.timeout:
-                break
-            if self.bypass_mode: self.main_bypass()
+        if self.bypass_mode:
+            self.init_bypass()
+            return self._main_process_bypass()
+        return self._main_process_non_bypass()
+    
+    def _main_process_bypass(self):
+        for _ in range(self.timeout):
+            self.main_bypass()
+            if self.scan_windows():
+                de_print(f'Final: {self.driver.title}')
+                de_print("Done")
+                self.save_cookie_verified()
+                return True
+            self.window_manager()
             norm_print("Waiting for cloudflare...")
-            de_print(f"cur: {self.driver.title}")
             time.sleep(1)
-        else:
-            de_print(self.driver.title)
-            de_print("Done")
-            self.save_cookie_verified()
-            return True
-        de_print("Failed to bypass, return failure")
+        de_print("Failed to bypass, returning failure")
         return False
 
-    def save_cookie(self, driver, file):
-        """Cookie save, requires driver and file"""
-        json.dump(driver, file)
+    def _main_process_non_bypass(self):
+        for _ in range(self.timeout):
+            if self.scan_windows():
+                de_print(f'Final: {self.driver.title}')
+                de_print("Done")
+                self.save_cookie_verified()
+                return True
+            norm_print("Waiting for site...")
+            time.sleep(1)
+        de_print("Timeout reached, returning failure")
+        return False
 
+    def save_cookie(self, cookies, file):
+        """Cookie save, requires driver cookies and file"""
+        json.dump(cookies, file)
+    
+    def save_agent(self, agent, file):
+        """UserAgent save, requires agent and file"""
+        json.dump(agent, file)
+        
     def save_cookie_verified(self):
         de_print('saving cookie')
-        json.dump(self.driver.execute_script("return navigator.userAgent;"), open(self.directory.session_path(),"w"))
+        self.save_agent(self.driver.execute_script("return navigator.userAgent;"), open(self.directory.session_path(),"w"))
         if DEBUG and DUMMY:
             de_print("DUMMY COOKIE")
             dummy = cfConstant.DEBUG_DUMMY
@@ -192,14 +232,17 @@ class SiteBrowserProcess:
 
     def create_directory(self):
         Path(self.destination).mkdir(parents=True, exist_ok=True)
-
+    
     def _init_chromedriver(self, *args, **kwargs):
         "Generates new Chromedriver, with chromeoptions checking"
         try:
             options = self.userOptions.chrome_options
             desired_cap = self.userOptions.desired_capabilities
             cdriver_path = self.directory.chromedriver_path()
-            driver = uc.Chrome(desired_capabilities=desired_cap,options=options,driver_executable_path=cdriver_path,headless=self.isheadless,*args, **kwargs)
+            if self.userOptions.proxy:
+                driver = ucwire.Chrome(desired_capabilities=desired_cap,options=options,driver_executable_path=cdriver_path,headless=self.isheadless,seleniumwire_options=self.userOptions.get_seleniumwire_options(),*args, **kwargs)
+            else:
+                driver = uc.Chrome(desired_capabilities=desired_cap,options=options,driver_executable_path=cdriver_path,headless=self.isheadless,*args, **kwargs)
         except RuntimeError:
             if self.ignore_defaults:
                 warn_print("userOptions for dcp and chromeoptions is reset but kept the attributes",0)
@@ -208,7 +251,10 @@ class SiteBrowserProcess:
             options = self.userOptions.chrome_options
             desired_cap = self.userOptions.desired_capabilities
             cdriver_path = self.directory.chromedriver_path()
-            driver = uc.Chrome(desired_capabilities=desired_cap,options=options,driver_executable_path=cdriver_path,headless=self.isheadless,*args, **kwargs)
+            if self.userOptions.proxy:
+                driver = ucwire.Chrome(desired_capabilities=desired_cap,options=options,driver_executable_path=cdriver_path,headless=self.isheadless,seleniumwire_options=self.userOptions.get_seleniumwire_options(),*args, **kwargs)
+            else:
+                driver = uc.Chrome(desired_capabilities=desired_cap,options=options,driver_executable_path=cdriver_path,headless=self.isheadless,*args, **kwargs)
         return driver
 
     def initialize_headless(self) -> str:

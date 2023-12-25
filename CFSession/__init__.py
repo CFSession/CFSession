@@ -5,7 +5,7 @@ from .cf import SiteBrowserProcess
 from .cfbrowser import cfSession, cfSimulacrum
 from .cfdefaults import Required_defaults
 from .cfcookie import cfCookieHandler
-from .cfmodels import cfDirectory, Options
+from .cfmodels import cfDirectory, Options, Proxy
 from .cfexception import (URLRequired, 
                         TooManyRedirects, 
                         Timeout,
