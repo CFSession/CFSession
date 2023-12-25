@@ -66,7 +66,7 @@ class Proxy(UserDict):
         proxy_port: int = None , 
         username: str = None, 
         password: str = None, 
-        host: Union[str, Iterable[Literal['https','http']]] = ['https','http'],
+        host: Union[str, Iterable] = ['https', 'http'],
         resolve_by_proxy: bool = True
     ) -> None:
         """Args:
@@ -126,11 +126,11 @@ class Proxy(UserDict):
             self.password = password
             credformat = f"{self.username}:{self.password}@" if self.username and self.password else ""
             self.proxy_address = f"{self.proxy_scheme}://{credformat}{self.proxy_hostname}:{proxy_port}"
-            if isinstance(self.host, Iterable):
+            if isinstance(self.host, Iterable) and not isinstance(self.host, str):
                 for host in self.host:
                     self.data[host] = self.proxy_address
             else:
-                self.data = {self.host: self.proxy_address}
+                self.data[host] = self.proxy_address
         else:
             self.data = {}
             self.proxy_address = ''
