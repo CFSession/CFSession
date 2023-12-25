@@ -137,7 +137,7 @@ class Proxy(UserDict):
             self.proxy_address = ''
         #Final touch
         if self.dns_on_proxy:
-            self.proxy_address = self.proxy_address.replace('socks5', 'socks5h')
+            self.data = {key: value.replace('socks5', 'socks5h') for key, value in self.data.items()}
     
     def test_proxy(self, protocol = 'https', demo = True):
         """Tests if a proxy is working properly, returns detail of your setup and the collected ip.
