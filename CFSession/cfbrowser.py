@@ -228,7 +228,7 @@ class cfSession():
             :rtype: requests.Response
         """
         content = None
-        for t in range(0,self.tries):
+        for t in range(0,self.tries+1):
             try:
                 content = self.session.request(method=method, url=url,**kwargs)   
                 content.raise_for_status()
@@ -242,6 +242,9 @@ class cfSession():
                     self.exception = NotFound(response=e.response)
                     break
                 elif http_code in (503, 403):
+                    if t == self.tries:
+                        #We add 1 for extra room to do final request but not for bypass
+                        break
                     if self._is_cf_site(http_content):
                         #CF blocked us, update the token
                         #Recheck token
