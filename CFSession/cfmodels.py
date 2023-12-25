@@ -5,7 +5,8 @@ This module contains the directory options and some supported configurable optio
 """
 
 import os
-from typing import Union, Iterable, Literal
+from typing import Union, Iterable
+from typing_extensions import Literal
 from .cfdefaults import cfConstant
 from .cfexception import ProxyConfigurationError, ProxyDecodeError
 import undetected_chromedriver as uc
