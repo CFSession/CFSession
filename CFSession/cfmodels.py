@@ -132,7 +132,7 @@ class Proxy(UserDict):
             else:
                 self.data = {self.host: self.proxy_address}
         else:
-            self.data = proxy
+            self.data = {}
             self.proxy_address = ''
         #Final touch
         if self.dns_on_proxy:
