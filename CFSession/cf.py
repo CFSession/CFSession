@@ -102,12 +102,20 @@ class CFBypass:
             (By.TAG_NAME, 'body'),
         )))
         time.sleep(time_to_sleep)
+    
+    def window_manager(self):
+        if len(self.driver.window_handles) > 2:
+            oldest_window = self.driver.window_handles[0]
+            self.driver.switch_to.window(oldest_window)
+            self.driver.close()
+            self.window_handles = self.driver.window_handles
+            self.driver.switch_to.window(self.window_handles[-1])  # Switch to the latest window
 
     def init_bypass(self):
         self.driver.execute_script(f'window.open("{self.website}","_blank");')
-        self.WaitForElement(10)
+        self.WaitForElement(3)
         self.driver.switch_to.window(window_name=self.driver.window_handles[0]) 
-        self.WaitForElement(5)
+        self.WaitForElement(3)
         self.driver.close()
         self.driver.switch_to.window(window_name=self.driver.window_handles[0])
     
@@ -127,39 +135,64 @@ class CFBypass:
             de_print("Click bypass Timeout")
         except Exception:
             warn_print("An error occured on click_bypass")
-        self.driver.close()
         self.driver.switch_to.window(window_name=self.driver.window_handles[self.switching[0]])
         self.switching.reverse()
 
     def main_bypass(self):
         self.click_bypass()
 
+    def scan_windows(self):
+        norm_print('Scanning windows')
+        for window_handle in self.driver.window_handles:
+            self.driver.switch_to.window(window_handle)
+            title = self.driver.title
+            de_print(f"cur: {title}")
+            if not any(ext in title for ext in self.TARGET_NAME):
+                return True
+
     def _main_process(self):
-        timeout = 0
-        if self.bypass_mode: self.init_bypass()
-        while any(ext in self.driver.title for ext in self.TARGET_NAME):
-            timeout += 1
-            if timeout >= self.timeout:
-                break
-            if self.bypass_mode: self.main_bypass()
+        if self.bypass_mode:
+            self.init_bypass()
+            return self._main_process_bypass()
+        return self._main_process_non_bypass()
+    
+    def _main_process_bypass(self):
+        for _ in range(self.timeout):
+            self.main_bypass()
+            if self.scan_windows():
+                de_print(f'Final: {self.driver.title}')
+                de_print("Done")
+                self.save_cookie_verified()
+                return True
+            self.window_manager()
             norm_print("Waiting for cloudflare...")
-            de_print(f"cur: {self.driver.title}")
             time.sleep(1)
-        else:
-            de_print(self.driver.title)
-            de_print("Done")
-            self.save_cookie_verified()
-            return True
-        de_print("Failed to bypass, return failure")
+        de_print("Failed to bypass, returning failure")
         return False
 
-    def save_cookie(self, driver, file):
-        """Cookie save, requires driver and file"""
-        json.dump(driver, file)
+    def _main_process_non_bypass(self):
+        for _ in range(self.timeout):
+            if self.scan_windows():
+                de_print(f'Final: {self.driver.title}')
+                de_print("Done")
+                self.save_cookie_verified()
+                return True
+            norm_print("Waiting for site...")
+            time.sleep(1)
+        de_print("Timeout reached, returning failure")
+        return False
 
+    def save_cookie(self, cookies, file):
+        """Cookie save, requires driver cookies and file"""
+        json.dump(cookies, file)
+    
+    def save_agent(self, agent, file):
+        """UserAgent save, requires agent and file"""
+        json.dump(agent, file)
+        
     def save_cookie_verified(self):
         de_print('saving cookie')
-        json.dump(self.driver.execute_script("return navigator.userAgent;"), open(self.directory.session_path(),"w"))
+        self.save_agent(self.driver.execute_script("return navigator.userAgent;"), open(self.directory.session_path(),"w"))
         if DEBUG and DUMMY:
             de_print("DUMMY COOKIE")
             dummy = cfConstant.DEBUG_DUMMY
