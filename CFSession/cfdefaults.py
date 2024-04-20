@@ -35,7 +35,7 @@ class Required_defaults:
         self.options = uc.ChromeOptions()
         self.dcp = DesiredCapabilities().CHROME
 
-    def options_default(self) -> uc.ChromeOptions():
+    def options_default(self) -> uc.ChromeOptions:
         try:
             self.options.use_chromium=True
             self.options.add_argument("--disable-renderer-backgrounding")
@@ -61,3 +61,9 @@ class cfConstant:
     DEF_AGENT_NAME: str = "sess_agent.json"
     DEF_DIRECTORY_NAME = (DEF_COOKIE_NAME, DEF_AGENT_NAME)
     DEF_CLOUDFLARE_TARGET = ["Just a moment...","Please Wait..."]
+
+class BYPASS_MODE:
+    CLICK_ONLY = "click_only"
+    WAIT_ONLY = "wait_only"
+    CLICK_AND_MOUSE = "click_mouse"
+    ALL = "all"

@@ -7,7 +7,7 @@ This module contains the directory options and some supported configurable optio
 import os
 from typing import Union, Iterable
 from typing_extensions import Literal
-from .cfdefaults import cfConstant
+from .cfdefaults import cfConstant, BYPASS_MODE
 from .cfexception import ProxyConfigurationError, ProxyDecodeError
 import undetected_chromedriver as uc
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
@@ -178,7 +178,8 @@ class Options:
         chrome_options: uc.ChromeOptions = None,
         desired_capabilities: DesiredCapabilities = None,
         user_agent: str = None,
-        ignore_cert_errors: bool = False
+        ignore_cert_errors: bool = False,
+        bypass_mode: str = BYPASS_MODE.ALL
     ):
         """Will serve as the configuration options for both the CFSession and the WebDriver Chrome.
         Args:
@@ -193,7 +194,8 @@ class Options:
             - chrome_options (uc.ChromeOptions, optional): Custom Chrome options to configure the browser.
             - desired_capabilities (DesiredCapabilities, optional): Desired capabilities for the WebDriver session.
             - user_agent (str, optional): Sets the user agent of the current sesssion.
-            - ignore_cert_errors (bool, optional): Ignores certificate errors
+            - ignore_cert_errors (bool, optional): Ignores certificate errors,
+            - bypass_mode (str, optional): Sets which bypass techniques to use. Default is ALL
 
         Note:
             - `proxy` should be a list of dictionaries with proxy server settings.
@@ -212,6 +214,7 @@ class Options:
         self.ignore_defaults = ignore_defaults
         self.chrome_options = chrome_options if chrome_options else self.get_default_chromeoptions()
         self.desired_capabilities = desired_capabilities if desired_capabilities else self.get_default_dcp()
+        self.bypass_mode = bypass_mode if bypass_mode else BYPASS_MODE.ALL
 
     def reset_dcp(self, defaults = True):
         """Reset `desired_capabilities` argument to be reused again
