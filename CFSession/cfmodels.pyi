@@ -1,4 +1,4 @@
-from .cfdefaults import cfConstant as cfConstant
+from .cfdefaults import cfConstant as cfConstant, BYPASS_MODE as BYPASS_MODE
 from _typeshed import Incomplete
 from typing_extensions import Literal, Tuple, Iterable
 import undetected_chromedriver as uc
@@ -39,6 +39,7 @@ class Options:
     desired_capabilities: DesiredCapabilities
     user_agent: str
     ignore_cert_errors: bool
+    bypass_mode: BYPASS_MODE
     def __init__(self, proxy: list = ..., headless: bool = ..., chrome_options: uc.ChromeOptions = ..., desired_capabilities: DesiredCapabilities = ..., user_agent: str = ..., ignore_cert_errors: bool = False) -> None: ...
     def reset_dcp(self, defaults: bool = True) -> None: ...
     def reset_chromeoptions(self, defaults: bool = True) -> None: ...
