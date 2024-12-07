@@ -29,11 +29,12 @@ class TextPipe:
             return io.TextIOWrapper(pipe, *self.args, **self.kwds)
 
 def outcollect(stout: bytes):
-    stdout.append(stout)
+    stdout.append(stout.decode("utf-8","replace"))
     
 def dumpcollect():
     with open("dumps.txt", "w", encoding="UTF-8") as f:
-        json.dump(stdout,f)
+        out = {"stdout": stdout}
+        json.dump(out,f)
 
 def def_print(status,output):
     if status:
@@ -42,15 +43,19 @@ def def_print(status,output):
     else:
         print(f"Test returned Error at {output}")
         return FAILED
+    
 def tester():
-    for numfile, file in enumerate(dir_list):
+    numfile = 0
+    for file in dir_list:
         s = None
         if file in ignore:
             continue
         elif file in [expf.get("name") for expf in expected.get("tests")]:
+            numfile += 1
+            print(f"Trying: {file}")
             try:
                 target = os.path.join(path,file)
-                stat = subprocess.Popen(["python", target],stdout=subprocess.PIPE, encoding="utf-8")
+                stat = subprocess.Popen(["python", target],stdout=subprocess.PIPE)
                 outcollect(stat.communicate()[0])
                 if stat.returncode == 0:
                     s = def_print(True,f"{file} - #{numfile}")
