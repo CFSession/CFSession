@@ -40,6 +40,7 @@ dependencies = [
     "requests>=2.25.0",
     "undetected-chromedriver>=3.5.4,!=3.5.1",
     "loguru==0.7.2",
+    "blinker==1.7.0",
     "selenium>=4.10.0",
     "typing-extensions",
     "selenium-wire>=5.1.0"
