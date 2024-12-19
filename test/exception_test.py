@@ -7,7 +7,7 @@ cf.DEBUG = True
 
 def main():
     session = cfSession()
-    res = session.get("https://nowsecure.nl/2332") #404 Notfound
+    res = session.get("https://secure.kinuseka.us/notfound") #404 Notfound
     try:
         res.raise_for_status()
     except cfexception.HTTPError as e:
